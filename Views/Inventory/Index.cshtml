@@ -1,0 +1,414 @@
+@model StationeryWarehouse.Models.Inventory.InventoryIndexViewModel
+
+@{
+    ViewData["Title"] = "Tồn kho";
+
+    var filter = Model.Filter;
+}
+
+<div class="page-header mb-3">
+    <div>
+        <h1 class="h4 mb-1">Tồn kho</h1>
+        <div class="text-muted">
+            Tra cứu số lượng tồn và vị trí sản phẩm trong kho
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+
+        <form method="get"
+              asp-controller="Inventory"
+              asp-action="Index">
+
+            <input type="hidden"
+                   name="Page"
+                   value="1" />
+
+            <input type="hidden"
+                   name="PageSize"
+                   value="20" />
+
+            <div class="row g-3">
+
+                <!-- Keyword -->
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Tìm kiếm
+                    </label>
+
+                    <input type="text"
+                           name="Keyword"
+                           value="@filter.Keyword"
+                           class="form-control"
+                           placeholder="Barcode, ISBN, mã SP hoặc tên sản phẩm..." />
+                </div>
+
+                <!-- Product Type -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Loại sản phẩm
+                    </label>
+
+                    <select name="ProductType"
+                            class="form-select">
+
+                        <option value="">
+                            Tất cả
+                        </option>
+
+                        <option value="BOOK"
+                                selected="@(filter.ProductType == "BOOK")">
+                            Sách
+                        </option>
+
+                        <option value="VPP"
+                                selected="@(filter.ProductType == "VPP")">
+                            Văn phòng phẩm
+                        </option>
+
+                    </select>
+                </div>
+
+                <!-- Supplier -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        NXB / Nhà cung cấp
+                    </label>
+
+                    <input type="text"
+                           name="Supplier"
+                           value="@filter.Supplier"
+                           class="form-control"
+                           placeholder="Nhập tên..." />
+                </div>
+
+                <!-- Warehouse -->
+                <div class="col-md-4">
+                    <label class="form-label">
+                        Kho
+                    </label>
+
+                    <input type="text"
+                           name="WarehouseId"
+                           value="@filter.WarehouseId"
+                           class="form-control"
+                           placeholder="Mã kho..." />
+                </div>
+
+                <!-- Location -->
+                <div class="col-md-4">
+                    <label class="form-label">
+                        Vị trí
+                    </label>
+
+                    <input type="text"
+                           name="LocationId"
+                           value="@filter.LocationId"
+                           class="form-control"
+                           placeholder="ID vị trí..." />
+                </div>
+
+                <!-- Low stock -->
+                <div class="col-md-4 d-flex align-items-end">
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="LowStockOnly"
+                               value="true"
+                               id="lowStockOnly"
+                               checked="@filter.LowStockOnly" />
+
+                        <label class="form-check-label"
+                               for="lowStockOnly">
+                            Chỉ hiển thị dưới Min Stock
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    Tìm kiếm
+                </button>
+
+                <a asp-controller="Inventory"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Xóa bộ lọc
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+        <div>
+            <strong>Danh sách tồn kho</strong>
+        </div>
+
+        <div class="text-muted small">
+            @Model.Filter.TotalItems sản phẩm
+        </div>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th style="width: 130px;">
+                        Barcode
+                    </th>
+
+                    <th>
+                        Tên sản phẩm
+                    </th>
+
+                    <th style="width: 100px;">
+                        Loại
+                    </th>
+
+                    <th style="width: 80px;">
+                        ĐVT
+                    </th>
+
+                    <th class="text-end"
+                        style="width: 110px;">
+                        Tổng tồn
+                    </th>
+
+                    <th class="text-end"
+                        style="width: 100px;">
+                        Min Stock
+                    </th>
+
+                    <th style="width: 130px;">
+                        Trạng thái
+                    </th>
+
+                    <th>
+                        Vị trí
+                    </th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr style="cursor: pointer;"
+                            onclick="window.location='@Url.Action("Detail", "Inventory", new { id = item.ProductId })'">
+
+                            <td>
+                                <span class="text-muted">
+                                    @(item.Barcode ?? "-")
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    @item.ProductName
+                                </div>
+
+                                <div class="small text-muted">
+                                    @item.ProductCode
+
+                                    @if (!string.IsNullOrWhiteSpace(item.ISBN))
+                                    {
+                                        <span>
+                                            · ISBN: @item.ISBN
+                                        </span>
+                                    }
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (item.ProductType == "BOOK")
+                                {
+                                    <span class="badge bg-info-subtle text-info-emphasis">
+                                        Sách
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                        @item.ProductType
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @item.Unit
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                @item.TotalQuantity
+                            </td>
+
+                            <td class="text-end">
+                                @item.MinStock
+                            </td>
+
+                            <td>
+                                @if (item.IsLowStock)
+                                {
+                                    <span class="badge bg-danger">
+                                        LOW STOCK
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        OK
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(item.Location))
+                                {
+                                    <span>
+                                        @item.Location
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Chưa có tồn
+                                    </span>
+                                }
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8"
+                            class="text-center py-5">
+
+                            <div class="text-muted">
+                                Không tìm thấy sản phẩm phù hợp.
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="card-body">
+
+        @{
+            var pagination =
+                new StationeryWarehouse.Models.Common.PaginationViewModel
+                {
+                    Page = Model.Filter.Page,
+                    PageSize = Model.Filter.PageSize,
+                    TotalItems = Model.Filter.TotalItems
+                };
+
+            var previousPage =
+                Math.Max(1, pagination.Page - 1);
+
+            var nextPage =
+                Math.Min(
+                    pagination.TotalPages,
+                    pagination.Page + 1);
+
+            var previousPageUrl =
+                Url.Action(
+                    "Index",
+                    "Inventory",
+                    new
+                    {
+                        Keyword = Model.Filter.Keyword,
+                        WarehouseId = Model.Filter.WarehouseId,
+                        LocationId = Model.Filter.LocationId,
+                        ProductType = Model.Filter.ProductType,
+                        Supplier = Model.Filter.Supplier,
+                        LowStockOnly = Model.Filter.LowStockOnly,
+                        Page = previousPage,
+                        PageSize = Model.Filter.PageSize
+                    });
+
+            var nextPageUrl =
+                Url.Action(
+                    "Index",
+                    "Inventory",
+                    new
+                    {
+                        Keyword = Model.Filter.Keyword,
+                        WarehouseId = Model.Filter.WarehouseId,
+                        LocationId = Model.Filter.LocationId,
+                        ProductType = Model.Filter.ProductType,
+                        Supplier = Model.Filter.Supplier,
+                        LowStockOnly = Model.Filter.LowStockOnly,
+                        Page = nextPage,
+                        PageSize = Model.Filter.PageSize
+                    });
+
+            var pageUrls =
+                new Dictionary<int, string?>();
+
+            for (var currentPage = 1;
+                currentPage <= pagination.TotalPages;
+                currentPage++)
+            {
+                pageUrls[currentPage] =
+                    Url.Action(
+                        "Index",
+                        "Inventory",
+                        new
+                        {
+                            Keyword = Model.Filter.Keyword,
+                            WarehouseId = Model.Filter.WarehouseId,
+                            LocationId = Model.Filter.LocationId,
+                            ProductType = Model.Filter.ProductType,
+                            Supplier = Model.Filter.Supplier,
+                            LowStockOnly = Model.Filter.LowStockOnly,
+                            Page = currentPage,
+                            PageSize = Model.Filter.PageSize
+                        });
+            }
+
+            ViewBag.PreviousPageUrl =
+                previousPageUrl;
+
+            ViewBag.NextPageUrl =
+                nextPageUrl;
+
+            ViewBag.PageUrls =
+                pageUrls;
+        }
+
+        <partial name="_Pagination"
+                model="pagination" />
+
+    </div>
+
+</div>

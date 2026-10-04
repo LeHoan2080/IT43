@@ -1,0 +1,34 @@
+@model StationeryWarehouse.Models.Inbound.InboundFormViewModel
+
+@{
+    ViewData["Title"] = $"Sửa phiếu {Model.ReceiptNo}";
+}
+
+<div class="erp-page">
+
+    <div class="mb-3">
+
+        <h4 class="mb-1">
+            Sửa phiếu nhập
+        </h4>
+
+        <div class="text-muted small">
+            @Model.ReceiptNo
+        </div>
+
+    </div>
+
+    <partial name="_Form"
+             model="Model" />
+
+</div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/inbound.js"
+            asp-append-version="true">
+    </script>
+}

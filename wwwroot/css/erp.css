@@ -1,0 +1,670 @@
+/* =========================================================
+   ERP LAYOUT
+   ========================================================= */
+
+:root {
+    --erp-sidebar-width: 250px;
+    --erp-topbar-height: 58px;
+
+    --erp-bg: #f5f6f7;
+    --erp-white: #ffffff;
+
+    --erp-border: #dee2e6;
+
+    --erp-text: #343a40;
+    --erp-muted: #6c757d;
+
+    --erp-primary: #714b67;
+
+    --erp-sidebar-text: #495057;
+    --erp-sidebar-hover: #f3f0f2;
+}
+
+
+/* =========================================================
+   BODY
+   ========================================================= */
+
+body {
+    margin: 0;
+    background: var(--erp-bg);
+    color: var(--erp-text);
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   MAIN LAYOUT
+   ========================================================= */
+
+.erp-layout {
+    min-height: 100vh;
+}
+
+.erp-main {
+    margin-left: var(--erp-sidebar-width);
+    min-height: 100vh;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.erp-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: var(--erp-sidebar-width);
+
+    background: var(--erp-white);
+
+    border-right: 1px solid var(--erp-border);
+
+    display: flex;
+    flex-direction: column;
+
+    z-index: 1000;
+
+    transition: width 0.2s ease;
+}
+
+
+/* Brand */
+
+.erp-brand {
+    height: var(--erp-topbar-height);
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 16px;
+
+    border-bottom: 1px solid var(--erp-border);
+}
+
+.erp-brand-icon {
+    width: 34px;
+    height: 34px;
+
+    border-radius: 6px;
+
+    background: var(--erp-primary);
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 700;
+
+    margin-right: 10px;
+}
+
+.erp-brand-title {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.erp-brand-subtitle {
+    font-size: 11px;
+    color: var(--erp-muted);
+}
+
+
+/* =========================================================
+   MENU
+   ========================================================= */
+
+.erp-menu {
+    padding: 12px 8px;
+
+    overflow-y: auto;
+
+    flex: 1;
+}
+
+.erp-menu-section {
+    margin-bottom: 20px;
+}
+
+.erp-menu-title {
+    padding: 8px 10px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    color: var(--erp-muted);
+
+    letter-spacing: 0.5px;
+}
+
+.erp-menu-item {
+    display: flex;
+    align-items: center;
+
+    min-height: 38px;
+
+    padding: 8px 10px;
+
+    margin-bottom: 2px;
+
+    border-radius: 5px;
+
+    color: var(--erp-sidebar-text);
+
+    text-decoration: none;
+
+    transition: background 0.15s ease;
+}
+
+.erp-menu-item:hover {
+    background: var(--erp-sidebar-hover);
+    color: var(--erp-primary);
+}
+
+.erp-menu-item.active {
+    background: #eee8ec;
+    color: var(--erp-primary);
+    font-weight: 600;
+}
+
+.erp-menu-icon {
+    width: 28px;
+
+    font-size: 16px;
+
+    text-align: center;
+
+    margin-right: 6px;
+}
+
+.erp-menu-text {
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   SIDEBAR FOOTER
+   ========================================================= */
+
+.erp-sidebar-footer {
+    padding: 12px 16px;
+
+    border-top: 1px solid var(--erp-border);
+
+    font-size: 11px;
+
+    color: var(--erp-muted);
+}
+
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.erp-topbar {
+    position: sticky;
+    top: 0;
+
+    height: var(--erp-topbar-height);
+
+    background: var(--erp-white);
+
+    border-bottom: 1px solid var(--erp-border);
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 20px;
+
+    z-index: 900;
+}
+
+.erp-topbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.erp-sidebar-toggle {
+    border: 0;
+    background: transparent;
+
+    font-size: 20px;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 5px;
+}
+
+.erp-sidebar-toggle:hover {
+    background: var(--erp-bg);
+}
+
+.erp-topbar-system {
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+
+/* =========================================================
+   GLOBAL SEARCH
+   ========================================================= */
+
+.erp-global-search {
+    flex: 1;
+
+    max-width: 500px;
+
+    margin-left: 40px;
+
+    position: relative;
+}
+
+.erp-global-search input {
+    padding-left: 38px;
+
+    background: #f8f9fa;
+
+    border: 1px solid transparent;
+
+    height: 36px;
+}
+
+.erp-global-search input:focus {
+    background: white;
+
+    border-color: var(--erp-border);
+
+    box-shadow: none;
+}
+
+.erp-search-icon {
+    position: absolute;
+
+    left: 12px;
+    top: 7px;
+
+    z-index: 2;
+}
+
+
+/* =========================================================
+   TOPBAR RIGHT
+   ========================================================= */
+
+.erp-topbar-right {
+    margin-left: auto;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+.erp-topbar-button {
+    border: 0;
+
+    background: transparent;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 5px;
+}
+
+.erp-topbar-button:hover {
+    background: var(--erp-bg);
+}
+
+.erp-user-button {
+    border: 0;
+
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 4px 8px;
+}
+
+.erp-avatar {
+    width: 32px;
+    height: 32px;
+
+    border-radius: 50%;
+
+    background: var(--erp-primary);
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+
+.erp-content {
+    padding: 20px 24px;
+}
+
+
+/* =========================================================
+   BREADCRUMB
+   ========================================================= */
+
+.erp-breadcrumb {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+
+    font-size: 13px;
+}
+
+.erp-breadcrumb a {
+    color: var(--erp-muted);
+    text-decoration: none;
+}
+
+.erp-breadcrumb a:hover {
+    color: var(--erp-primary);
+}
+
+.erp-breadcrumb-current {
+    color: var(--erp-text);
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.erp-page-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.erp-page-title {
+    margin: 0;
+
+    font-size: 24px;
+
+    font-weight: 600;
+}
+
+.erp-page-description {
+    margin: 4px 0 0;
+
+    color: var(--erp-muted);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 992px) {
+
+    .erp-sidebar {
+        width: 70px;
+    }
+
+    .erp-main {
+        margin-left: 70px;
+    }
+
+    .erp-brand-text,
+    .erp-menu-title,
+    .erp-menu-text,
+    .erp-sidebar-footer {
+        display: none;
+    }
+
+    .erp-brand {
+        justify-content: center;
+    }
+
+    .erp-brand-icon {
+        margin-right: 0;
+    }
+
+    .erp-menu-item {
+        justify-content: center;
+    }
+
+    .erp-menu-icon {
+        margin-right: 0;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .erp-global-search {
+        display: none;
+    }
+
+    .erp-content {
+        padding: 16px;
+    }
+
+    .erp-user-name {
+        display: none;
+    }
+}
+
+
+/* =========================================================
+   INVENTORY - S01
+   ========================================================= */
+
+.erp-search-panel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 12px;
+}
+
+.erp-search-box {
+    position: relative;
+    flex: 1;
+    max-width: 650px;
+}
+
+.erp-search-box input {
+    height: 38px;
+    padding-left: 38px;
+}
+
+.erp-search-box .erp-search-icon {
+    position: absolute;
+
+    left: 12px;
+    top: 8px;
+
+    z-index: 2;
+}
+
+.erp-filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+
+/* List */
+
+.erp-list-view {
+    background: white;
+
+    border: 1px solid var(--erp-border);
+
+    border-radius: 5px;
+
+    overflow: hidden;
+}
+
+.erp-list-toolbar {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 10px 14px;
+
+    border-bottom: 1px solid var(--erp-border);
+}
+
+.erp-table {
+    margin-bottom: 0;
+}
+
+.erp-table thead th {
+    background: #f8f9fa;
+
+    color: #495057;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    border-bottom: 1px solid var(--erp-border);
+}
+
+.erp-table tbody td {
+    padding: 11px 12px;
+
+    vertical-align: middle;
+
+    font-size: 13px;
+}
+
+.erp-table tbody tr {
+    cursor: pointer;
+}
+
+.erp-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.erp-checkbox-column {
+    width: 42px;
+}
+
+
+/* Product link */
+
+.erp-product-link {
+    color: var(--erp-text);
+
+    text-decoration: none;
+
+    font-weight: 500;
+}
+
+.erp-product-link:hover {
+    color: var(--erp-primary);
+
+    text-decoration: underline;
+}
+
+
+/* Product type */
+
+.erp-badge {
+    display: inline-block;
+
+    padding: 3px 7px;
+
+    border-radius: 4px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.erp-badge-book {
+    background: #eee8ec;
+    color: #714b67;
+}
+
+.erp-badge-stationery {
+    background: #e8f1f8;
+    color: #315b75;
+}
+
+
+/* Stock status */
+
+.erp-stock-status {
+    display: inline-flex;
+
+    padding: 3px 8px;
+
+    border-radius: 12px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.erp-stock-ok {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.erp-stock-low {
+    background: #fff3cd;
+    color: #856404;
+}
+
+
+/* Footer */
+
+.erp-list-footer {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 10px 14px;
+
+    border-top: 1px solid var(--erp-border);
+
+    font-size: 13px;
+}
+
+.erp-content .pagination .page-link {
+    color: #714b67;
+}
+
+.erp-content .pagination .page-item.active .page-link {
+    background-color: #714b67;
+    border-color: #714b67;
+}
+
+.erp-content .pagination .page-link:hover {
+    background-color: #f3edf1;
+}

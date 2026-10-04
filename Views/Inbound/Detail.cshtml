@@ -1,0 +1,773 @@
+@model StationeryWarehouse.Models.Inbound.InboundFormViewModel
+
+@{
+    ViewData["Title"] = $"Phiếu nhập {Model.ReceiptNo}";
+
+    var isDraft = Model.Status == "DRAFT";
+    var isReceiving = Model.Status == "RECEIVING";
+    var isDone = Model.Status == "DONE";
+    var isCancelled = Model.Status == "CANCELLED";
+
+    var canAction =
+        User.IsInRole("ADMIN") ||
+        User.IsInRole("WAREHOUSE_MANAGER") ||
+        User.IsInRole("WAREHOUSE_OPERATOR");
+}
+
+<div class="container-fluid px-0">
+
+    <!-- ===================================================== -->
+    <!-- BREADCRUMB -->
+    <!-- ===================================================== -->
+
+    <div class="mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+
+                <li class="breadcrumb-item">
+                    <a asp-controller="Home"
+                       asp-action="Index">
+                        Trang chủ
+                    </a>
+                </li>
+
+                <li class="breadcrumb-item">
+                    <a asp-controller="Inbound"
+                       asp-action="Index">
+                        Nhập kho
+                    </a>
+                </li>
+
+                <li class="breadcrumb-item active"
+                    aria-current="page">
+                    @Model.ReceiptNo
+                </li>
+
+            </ol>
+        </nav>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- PAGE HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2">
+
+                <h4 class="mb-1">
+                    @Model.ReceiptNo
+                </h4>
+
+                @if (isDraft)
+                {
+                    <span class="badge bg-secondary">
+                        DRAFT
+                    </span>
+                }
+                else if (isReceiving)
+                {
+                    <span class="badge bg-warning text-dark">
+                        RECEIVING
+                    </span>
+                }
+                else if (isDone)
+                {
+                    <span class="badge bg-success">
+                        DONE
+                    </span>
+                }
+                else if (isCancelled)
+                {
+                    <span class="badge bg-danger">
+                        CANCELLED
+                    </span>
+                }
+
+            </div>
+
+            <div class="text-muted small">
+                Chi tiết phiếu nhập kho
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- ACTION BUTTONS -->
+        <!-- ================================================= -->
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            @if (canAction && isDraft)
+            {
+                <a asp-controller="Inbound"
+                   asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-outline-primary">
+
+                    <i class="bi bi-pencil me-1"></i>
+                    Sửa
+
+                </a>
+
+
+                <form asp-controller="Inbound"
+                      asp-action="StartReceiving"
+                      asp-route-id="@Model.Id"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-box-arrow-in-down me-1"></i>
+                        Bắt đầu nhận
+
+                    </button>
+
+                </form>
+            }
+
+
+            @if (canAction && isReceiving)
+            {
+                <a asp-controller="Inbound"
+                   asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-outline-primary">
+
+                    <i class="bi bi-pencil me-1"></i>
+                    Sửa
+
+                </a>
+
+
+                <form asp-controller="Inbound"
+                      asp-action="Complete"
+                      asp-route-id="@Model.Id"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Bạn có chắc chắn muốn xác nhận nhập kho? Sau khi hoàn tất, phiếu sẽ không thể sửa.');">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        <i class="bi bi-check2-circle me-1"></i>
+                        Xác nhận nhập
+
+                    </button>
+
+                </form>
+            }
+
+
+            @if (canAction && (isDraft || isReceiving))
+            {
+                <form asp-controller="Inbound"
+                      asp-action="Cancel"
+                      asp-route-id="@Model.Id"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy phiếu nhập này?');">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-outline-danger">
+
+                        <i class="bi bi-x-circle me-1"></i>
+                        Hủy
+
+                    </button>
+
+                </form>
+            }
+
+
+            <a asp-controller="Inbound"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Quay lại
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- TEMP DATA -->
+    <!-- ===================================================== -->
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ===================================================== -->
+    <!-- STATUSBAR -->
+    <!-- ===================================================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex align-items-center justify-content-center flex-wrap gap-0">
+
+                <!-- DRAFT -->
+
+                <div class="text-center">
+
+                    <div class="rounded-circle
+                                @(isDraft || isReceiving || isDone
+                                    ? "bg-primary text-white"
+                                    : "bg-light text-muted")
+                                d-flex align-items-center justify-content-center"
+                         style="width:40px;height:40px;">
+
+                        <i class="bi bi-file-earmark"></i>
+
+                    </div>
+
+                    <div class="small mt-1">
+                        Nháp
+                    </div>
+
+                </div>
+
+
+                <div class="mx-2 text-muted">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+
+
+                <!-- RECEIVING -->
+
+                <div class="text-center">
+
+                    <div class="rounded-circle
+                                @(isReceiving || isDone
+                                    ? "bg-primary text-white"
+                                    : "bg-light text-muted")
+                                d-flex align-items-center justify-content-center"
+                         style="width:40px;height:40px;">
+
+                        <i class="bi bi-box-seam"></i>
+
+                    </div>
+
+                    <div class="small mt-1">
+                        Đang nhận
+                    </div>
+
+                </div>
+
+
+                <div class="mx-2 text-muted">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+
+
+                <!-- DONE -->
+
+                <div class="text-center">
+
+                    <div class="rounded-circle
+                                @(isDone
+                                    ? "bg-success text-white"
+                                    : "bg-light text-muted")
+                                d-flex align-items-center justify-content-center"
+                         style="width:40px;height:40px;">
+
+                        <i class="bi bi-check-lg"></i>
+
+                    </div>
+
+                    <div class="small mt-1">
+                        Hoàn tất
+                    </div>
+
+                </div>
+
+
+                @if (isCancelled)
+                {
+                    <div class="mx-2 text-muted">
+                        <i class="bi bi-x-lg"></i>
+                    </div>
+
+                    <div class="text-center">
+
+                        <div class="rounded-circle
+                                    bg-danger text-white
+                                    d-flex align-items-center justify-content-center"
+                             style="width:40px;height:40px;">
+
+                            <i class="bi bi-x-lg"></i>
+
+                        </div>
+
+                        <div class="small mt-1 text-danger">
+                            Đã hủy
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- HEADER INFORMATION -->
+    <!-- ===================================================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <strong>
+                <i class="bi bi-info-circle me-1"></i>
+                Thông tin phiếu
+            </strong>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <!-- Số phiếu -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Số phiếu
+                    </div>
+
+                    <div class="fw-semibold">
+                        @Model.ReceiptNo
+                    </div>
+
+                </div>
+
+
+                <!-- Nhà cung cấp -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Nhà cung cấp/NXB
+                    </div>
+
+                    <div class="fw-semibold">
+                        @(string.IsNullOrWhiteSpace(Model.SupplierName)
+                            ? "-"
+                            : Model.SupplierName)
+                    </div>
+
+                </div>
+
+
+                <!-- Kho -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Kho nhận
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        @{
+                            var warehouseName =
+                                Model.Warehouses
+                                    .FirstOrDefault(x =>
+                                        x.Id == Model.WarehouseId)
+                                    ?.Name;
+                        }
+
+                        @(warehouseName ?? "-")
+
+                    </div>
+
+                </div>
+
+
+                <!-- Ngày -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Ngày nhập
+                    </div>
+
+                    <div>
+                        @Model.ReceiptDate.ToString("dd/MM/yyyy")
+                    </div>
+
+                </div>
+
+
+                <!-- Trạng thái -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Trạng thái
+                    </div>
+
+                    <div>
+
+                        @if (isDraft)
+                        {
+                            <span class="badge bg-secondary">
+                                DRAFT
+                            </span>
+                        }
+                        else if (isReceiving)
+                        {
+                            <span class="badge bg-warning text-dark">
+                                RECEIVING
+                            </span>
+                        }
+                        else if (isDone)
+                        {
+                            <span class="badge bg-success">
+                                DONE
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">
+                                CANCELLED
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Ghi chú -->
+
+                <div class="col-md-12">
+
+                    <div class="text-muted small">
+                        Ghi chú
+                    </div>
+
+                    <div>
+                        @(string.IsNullOrWhiteSpace(Model.Note)
+                            ? "-"
+                            : Model.Note)
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- INBOUND LINES -->
+    <!-- ===================================================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            <strong>
+                <i class="bi bi-box-seam me-1"></i>
+                Chi tiết hàng nhập
+            </strong>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th style="width:50px;">
+                                #
+                            </th>
+
+                            <th style="min-width:220px;">
+                                Barcode
+                            </th>
+
+                            <th style="min-width:240px;">
+                                Sản phẩm
+                            </th>
+
+                            <th style="width:130px;">
+                                SL dự kiến
+                            </th>
+
+                            <th style="width:140px;">
+                                SL thực nhận
+                            </th>
+
+                            <th style="min-width:180px;">
+                                Bin
+                            </th>
+
+                            <th style="min-width:180px;">
+                                Ghi chú
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (Model.Lines != null &&
+                             Model.Lines.Count > 0)
+                        {
+                            var index = 1;
+
+                            foreach (var line in Model.Lines)
+                            {
+                                <tr>
+
+                                    <td class="text-center">
+                                        @index
+                                    </td>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            line.ProductBarcode))
+                                        {
+                                            <span class="font-monospace">
+                                                @line.ProductBarcode
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="fw-medium">
+                                            @line.ProductDisplay
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            line.ISBN))
+                                        {
+                                            <div class="small text-muted">
+                                                ISBN:
+                                                @line.ISBN
+                                            </div>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        @line.ExpectedQty.ToString("N0")
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        @if (line.ReceivedQty > 0)
+                                        {
+                                            <span class="fw-semibold">
+                                                @line.ReceivedQty.ToString("N0")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                0
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            line.LocationDisplay))
+                                        {
+                                            <span>
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                @line.LocationDisplay
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">
+                                                Chưa chọn Bin
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(line.Note)
+                                            ? "-"
+                                            : line.Note)
+
+                                    </td>
+
+                                </tr>
+
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="7"
+                                    class="text-center text-muted py-4">
+
+                                    Chưa có dòng hàng.
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+
+                    @if (Model.Lines != null &&
+                         Model.Lines.Count > 0)
+                    {
+                        <tfoot class="table-light">
+
+                            <tr>
+
+                                <th colspan="3"
+                                    class="text-end">
+
+                                    Tổng cộng
+
+                                </th>
+
+                                <th class="text-end">
+
+                                    @Model.Lines
+                                        .Sum(x => x.ExpectedQty)
+                                        .ToString("N0")
+
+                                </th>
+
+                                <th class="text-end">
+
+                                    @Model.Lines
+                                        .Sum(x => x.ReceivedQty)
+                                        .ToString("N0")
+
+                                </th>
+
+                                <th colspan="2">
+                                </th>
+
+                            </tr>
+
+                        </tfoot>
+                    }
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- LOCKED MESSAGE -->
+    <!-- ===================================================== -->
+
+    @if (isDone)
+    {
+        <div class="alert alert-success">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            Phiếu đã hoàn tất. Tồn kho và lịch sử biến động
+            đã được cập nhật. Phiếu không thể chỉnh sửa.
+
+        </div>
+    }
+
+
+    @if (isCancelled)
+    {
+        <div class="alert alert-danger">
+
+            <i class="bi bi-x-circle me-2"></i>
+
+            Phiếu đã bị hủy và không thể thực hiện tiếp.
+
+        </div>
+    }
+
+</div>

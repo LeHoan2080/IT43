@@ -1,0 +1,87 @@
+@model StationeryWarehouse.Models.Common.PaginationViewModel
+
+@if (Model.TotalItems > 0)
+{
+    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+
+        <div class="text-muted small">
+            Hiển thị
+            <strong>@Model.FirstItemIndex</strong>
+            –
+            <strong>@Model.LastItemIndex</strong>
+            /
+            <strong>@Model.TotalItems</strong>
+            bản ghi
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Phân trang">
+                <ul class="pagination pagination-sm mb-0">
+
+                    @if (Model.HasPreviousPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="@ViewBag.PreviousPageUrl">
+                                ‹
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">‹</span>
+                        </li>
+                    }
+
+                    @for (var currentPage = 1;
+                          currentPage <= Model.TotalPages;
+                          currentPage++)
+                    {
+                        if (currentPage == Model.Page)
+                        {
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    @currentPage
+                                </span>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="@ViewBag.PageUrls[currentPage]">
+                                    @currentPage
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @if (Model.HasNextPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="@ViewBag.NextPageUrl">
+                                ›
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">›</span>
+                        </li>
+                    }
+
+                </ul>
+            </nav>
+        }
+    </div>
+}
+else
+{
+    <div class="text-muted small mt-3">
+        Không có dữ liệu.
+    </div>
+}

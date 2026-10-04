@@ -1,51 +1,67 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 using StationeryWarehouse.Data;
 using StationeryWarehouse.Entities;
 using StationeryWarehouse.Models;
 using StationeryWarehouse.Services;
+using StationeryWarehouse.Services.Inventory;
+using StationeryWarehouse.Services.Warehouse;
+using StationeryWarehouse.Services.Inbound;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ========================================
-// SQL SERVER
-// ========================================
+
+// ============================================================
+// 1. DATABASE
+// ============================================================
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration
-            .GetConnectionString("DefaultConnection")
-    )
-);
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection"
+        )
+    ));
 
-// ========================================
-// MVC
-// ========================================
+
+// ============================================================
+// 2. MVC
+// ============================================================
 
 builder.Services.AddControllersWithViews();
 
-// ========================================
-// JWT SETTINGS
-// ========================================
+
+// ============================================================
+// 3. JWT SETTINGS
+// ============================================================
 
 builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("Jwt")
+    builder.Configuration.GetSection("JwtSettings")
 );
 
-var jwtSettings =
-    builder.Configuration
-        .GetSection("Jwt")
-        .Get<JwtSettings>()
-    ?? throw new InvalidOperationException(
-        "JWT configuration is missing."
-    );
+var jwtSettings = builder.Configuration
+    .GetSection("JwtSettings")
+    .Get<JwtSettings>();
 
-// ========================================
-// JWT AUTHENTICATION
-// ========================================
+if (jwtSettings == null ||
+    string.IsNullOrWhiteSpace(jwtSettings.Key))
+{
+    throw new InvalidOperationException(
+        "JwtSettings chưa được cấu hình trong appsettings.json."
+    );
+}
+
+var key = Encoding.UTF8.GetBytes(
+    jwtSettings.Key
+);
+
+
+// ============================================================
+// 4. AUTHENTICATION - JWT
+// ============================================================
 
 builder.Services
     .AddAuthentication(options =>
@@ -62,60 +78,109 @@ builder.Services
             new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidIssuer = jwtSettings.Issuer,
 
                 ValidateAudience = true,
-                ValidAudience = jwtSettings.Audience,
-
-                ValidateIssuerSigningKey = true,
-
-                IssuerSigningKey =
-                    new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            jwtSettings.Key
-                        )
-                    ),
 
                 ValidateLifetime = true,
 
-                ClockSkew = TimeSpan.Zero
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer =
+                    jwtSettings.Issuer,
+
+                ValidAudience =
+                    jwtSettings.Audience,
+
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(key),
+
+                ClockSkew =
+                    TimeSpan.Zero
             };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                if (context.Request.Cookies
-                    .TryGetValue(
-                        "access_token",
-                        out var token))
-                {
-                    context.Token = token;
-                }
 
-                return Task.CompletedTask;
-            }
-        };
+        // --------------------------------------------------------
+        // Đọc JWT từ HttpOnly Cookie
+        // --------------------------------------------------------
+
+        options.Events =
+            new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var token =
+                        context.Request.Cookies[
+                            "access_token"
+                        ];
+
+                    if (!string.IsNullOrWhiteSpace(token))
+                    {
+                        context.Token = token;
+                    }
+
+                    return Task.CompletedTask;
+                },
+
+
+                // ------------------------------------------------
+                // Chưa đăng nhập
+                // ------------------------------------------------
+
+                OnChallenge = context =>
+                {
+                    if (!context.Response.HasStarted)
+                    {
+                        context.HandleResponse();
+
+                        var returnUrl =
+                            context.Request.Path +
+                            context.Request.QueryString;
+
+                        context.Response.Redirect(
+                            "/Auth/Login?returnUrl=" +
+                            Uri.EscapeDataString(
+                                returnUrl
+                            )
+                        );
+                    }
+
+                    return Task.CompletedTask;
+                },
+
+
+                // ------------------------------------------------
+                // Không có quyền
+                // ------------------------------------------------
+
+                OnForbidden = context =>
+                {
+                    if (!context.Response.HasStarted)
+                    {
+                        context.Response.Redirect(
+                            "/Auth/AccessDenied"
+                        );
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
     });
 
-// ========================================
-// AUTHORIZATION
-// ========================================
+
+// ============================================================
+// 5. AUTHORIZATION
+// ============================================================
 
 builder.Services.AddAuthorization();
 
-// ========================================
-// PASSWORD HASHER
-// ========================================
 
-builder.Services.AddScoped<
-    IPasswordHasher<AppUser>,
-    PasswordHasher<AppUser>
->();
+// ============================================================
+// 6. APPLICATION SERVICES
+// ============================================================
 
-// ========================================
-// SERVICES
-// ========================================
+// ------------------------------------------------------------
+// Authentication
+// ------------------------------------------------------------
 
 builder.Services.AddScoped<
     IAuthService,
@@ -127,33 +192,130 @@ builder.Services.AddScoped<
     JwtService
 >();
 
+
+// ------------------------------------------------------------
+// Password Hashing
+// ------------------------------------------------------------
+
+builder.Services.AddScoped<
+    IPasswordHasher<AppUser>,
+    PasswordHasher<AppUser>
+>();
+
+
+// ------------------------------------------------------------
+// S01 - Tồn kho
+// ------------------------------------------------------------
+
+builder.Services.AddScoped<
+    IInventoryService,
+    InventoryService
+>();
+
+
+// ------------------------------------------------------------
+// S03 - Kho & vị trí
+// ------------------------------------------------------------
+
+builder.Services.AddScoped<
+    IWarehouseService,
+    WarehouseService
+>();
+
+// ------------------------------------------------------------
+// S04 - Nhập kho
+// ------------------------------------------------------------
+
+builder.Services.AddScoped<
+    IInboundService,
+    InboundService
+>();
+
+// ============================================================
+// 7. BUILD APPLICATION
+// ============================================================
+
 var app = builder.Build();
 
-// ========================================
-// HTTP PIPELINE
-// ========================================
+
+// ============================================================
+// 8. DATABASE SEED
+// ============================================================
+
+using (var scope = app.Services.CreateScope())
+{
+    var services =
+        scope.ServiceProvider;
+
+    var context =
+        services.GetRequiredService<AppDbContext>();
+
+    await DbSeeder.SeedAsync(context);
+}
+
+
+// ============================================================
+// 9. HTTP REQUEST PIPELINE
+// ============================================================
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(
+        "/Home/Error"
+    );
 
     app.UseHsts();
 }
 
+
+// ------------------------------------------------------------
+// HTTPS
+// ------------------------------------------------------------
+
 app.UseHttpsRedirection();
+
+
+// ------------------------------------------------------------
+// Static files
+// ------------------------------------------------------------
 
 app.UseStaticFiles();
 
+
+// ------------------------------------------------------------
+// Routing
+// ------------------------------------------------------------
+
 app.UseRouting();
+
+
+// ------------------------------------------------------------
+// Authentication
+// ------------------------------------------------------------
 
 app.UseAuthentication();
 
+
+// ------------------------------------------------------------
+// Authorization
+// ------------------------------------------------------------
+
 app.UseAuthorization();
+
+
+// ============================================================
+// 10. ROUTING
+// ============================================================
 
 app.MapControllerRoute(
     name: "default",
     pattern:
         "{controller=Home}/{action=Index}/{id?}"
 );
+
+
+// ============================================================
+// 11. RUN APPLICATION
+// ============================================================
 
 app.Run();

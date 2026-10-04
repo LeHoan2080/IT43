@@ -1,0 +1,109 @@
+@model StationeryWarehouse.Models.Warehouse.WarehouseFormViewModel
+
+@{
+    ViewData["Title"] = "Tạo kho";
+}
+
+<div class="erp-page">
+
+    <div class="erp-page-header">
+
+        <div>
+            <h1 class="erp-page-title">
+                Tạo kho
+            </h1>
+
+            <div class="text-muted">
+                Thêm kho mới vào hệ thống
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card erp-card">
+
+        <div class="card-body">
+
+            <form asp-action="CreateWarehouse"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Code"
+                               class="form-label">
+                        </label>
+
+                        <input asp-for="Code"
+                               class="form-control"
+                               placeholder="VD: WH01" />
+
+                        <span asp-validation-for="Code"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Name"
+                               class="form-label">
+                        </label>
+
+                        <input asp-for="Name"
+                               class="form-control"
+                               placeholder="VD: Kho chính" />
+
+                        <span asp-validation-for="Name"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="Address"
+                           class="form-label">
+                    </label>
+
+                    <textarea asp-for="Address"
+                              class="form-control"
+                              rows="3">
+                    </textarea>
+
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Lưu
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        Hủy
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

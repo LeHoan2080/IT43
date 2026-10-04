@@ -1,0 +1,181 @@
+<aside class="erp-sidebar" id="erpSidebar">
+
+    <!-- LOGO -->
+    <div class="erp-brand">
+        <div class="erp-brand-icon">
+            K
+        </div>
+
+        <div class="erp-brand-text">
+            <div class="erp-brand-title">
+                QUẢN LÝ KHO
+            </div>
+
+            <div class="erp-brand-subtitle">
+                Sách & Văn phòng phẩm
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MENU -->
+    <nav class="erp-menu">
+
+        <!-- QUẢN LÝ KHO -->
+        <div class="erp-menu-section">
+
+            <div class="erp-menu-title">
+                QUẢN LÝ KHO
+            </div>
+
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">▦</span>
+
+                <span class="erp-menu-text">
+                    Tồn kho
+                </span>
+
+            </a>
+
+
+            <a asp-controller="Inbound"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">↓</span>
+
+                <span class="erp-menu-text">
+                    Nhập kho
+                </span>
+
+            </a>
+
+
+            <a asp-controller="Outbound"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">↑</span>
+
+                <span class="erp-menu-text">
+                    Xuất kho
+                </span>
+
+            </a>
+
+
+            <a asp-controller="Transfer"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">⇄</span>
+
+                <span class="erp-menu-text">
+                    Điều chuyển
+                </span>
+
+            </a>
+
+
+            <a asp-controller="Stocktake"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">✓</span>
+
+                <span class="erp-menu-text">
+                    Kiểm kê & điều chỉnh
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- DANH MỤC -->
+        <div class="erp-menu-section">
+
+            <div class="erp-menu-title">
+                DANH MỤC
+            </div>
+
+
+            <a asp-controller="Product"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">▤</span>
+
+                <span class="erp-menu-text">
+                    Sản phẩm
+                </span>
+
+            </a>
+
+
+            <a asp-controller="Partner"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">♙</span>
+
+                <span class="erp-menu-text">
+                    Nhà cung cấp / NXB
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- CẤU HÌNH -->
+        <div class="erp-menu-section">
+
+            <div class="erp-menu-title">
+                CẤU HÌNH
+            </div>
+
+
+            <a asp-controller="Warehouse"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">⌂</span>
+
+                <span class="erp-menu-text">
+                    Kho & vị trí
+                </span>
+
+            </a>
+
+
+            <a asp-controller="Settings"
+               asp-action="Index"
+               class="erp-menu-item">
+
+                <span class="erp-menu-icon">⚙</span>
+
+                <span class="erp-menu-text">
+                    Cài đặt
+                </span>
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- SIDEBAR FOOTER -->
+    <div class="erp-sidebar-footer">
+
+        <span class="erp-version">
+            v1.0.0
+        </span>
+
+    </div>
+
+</aside>

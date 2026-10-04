@@ -1,0 +1,705 @@
+@model StationeryWarehouse.Models.Inbound.InboundIndexViewModel
+
+@{
+    ViewData["Title"] = "Nhập kho";
+
+    var filter = Model.Filter;
+
+    var currentPage = Model.Pagination.Page;
+    var totalPages = Model.Pagination.TotalPages;
+
+    string BuildPageUrl(int page)
+    {
+        return Url.Action(
+            "Index",
+            "Inbound",
+            new
+            {
+                Keyword = filter.Keyword,
+                Status = filter.Status,
+                WarehouseId = filter.WarehouseId,
+                FromDate = filter.FromDate?.ToString("yyyy-MM-dd"),
+                ToDate = filter.ToDate?.ToString("yyyy-MM-dd"),
+                Page = page
+            }) ?? "#";
+    }
+
+    string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "DRAFT" => "Nháp",
+            "RECEIVING" => "Đang nhận",
+            "DONE" => "Hoàn tất",
+            "CANCELLED" => "Đã hủy",
+            _ => status
+        };
+    }
+
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "DRAFT" => "bg-secondary",
+            "RECEIVING" => "bg-warning text-dark",
+            "DONE" => "bg-success",
+            "CANCELLED" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+<div class="erp-page">
+
+    <!-- ===================================================== -->
+    <!-- PAGE HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h4 class="mb-1">
+                Nhập kho
+            </h4>
+
+            <div class="text-muted small">
+                Quản lý các phiếu nhập hàng vào kho
+            </div>
+        </div>
+
+        @if (User.IsInRole("ADMIN") ||
+             User.IsInRole("WAREHOUSE_MANAGER") ||
+             User.IsInRole("WAREHOUSE_OPERATOR"))
+        {
+            <a asp-controller="Inbound"
+               asp-action="Create"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Tạo phiếu nhập
+            </a>
+        }
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- SUCCESS / ERROR MESSAGE -->
+    <!-- ===================================================== -->
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+
+    <!-- ===================================================== -->
+    <!-- FILTER -->
+    <!-- ===================================================== -->
+
+    <div class="card erp-card mb-3">
+
+        <div class="card-body">
+
+            <form asp-controller="Inbound"
+                  asp-action="Index"
+                  method="get">
+
+                <div class="row g-3">
+
+                    <!-- Keyword -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Tìm kiếm
+                        </label>
+
+                        <input type="text"
+                               name="Keyword"
+                               value="@filter.Keyword"
+                               class="form-control"
+                               placeholder="Số phiếu hoặc nhà cung cấp/NXB..." />
+
+                    </div>
+
+
+                    <!-- Status -->
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Trạng thái
+                        </label>
+
+                        <select name="Status"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            @if (filter.Status == "DRAFT")
+                            {
+                                <option value="DRAFT" selected>
+                                    Nháp
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="DRAFT">
+                                    Nháp
+                                </option>
+                            }
+
+                            @if (filter.Status == "RECEIVING")
+                            {
+                                <option value="RECEIVING" selected>
+                                    Đang nhận
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="RECEIVING">
+                                    Đang nhận
+                                </option>
+                            }
+
+                            @if (filter.Status == "DONE")
+                            {
+                                <option value="DONE" selected>
+                                    Hoàn tất
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="DONE">
+                                    Hoàn tất
+                                </option>
+                            }
+
+                            @if (filter.Status == "CANCELLED")
+                            {
+                                <option value="CANCELLED" selected>
+                                    Đã hủy
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="CANCELLED">
+                                    Đã hủy
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Warehouse -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Kho
+                        </label>
+
+                        <select name="WarehouseId"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả kho
+                            </option>
+
+                            @foreach (var warehouse in Model.Warehouses)
+                            {
+                                if (filter.WarehouseId == warehouse.Id)
+                                {
+                                    <option value="@warehouse.Id"
+                                            selected>
+                                        @warehouse.Code -
+                                        @warehouse.Name
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@warehouse.Id">
+                                        @warehouse.Code -
+                                        @warehouse.Name
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- From Date -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Từ ngày
+                        </label>
+
+                        <input type="date"
+                               name="FromDate"
+                               value="@(filter.FromDate?.ToString("yyyy-MM-dd"))"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- To Date -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Đến ngày
+                        </label>
+
+                        <input type="date"
+                               name="ToDate"
+                               value="@(filter.ToDate?.ToString("yyyy-MM-dd"))"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="col-md-9 d-flex align-items-end gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search"></i>
+                            Tìm kiếm
+
+                        </button>
+
+                        <a asp-controller="Inbound"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            Xóa bộ lọc
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- LIST -->
+    <!-- ===================================================== -->
+
+    <div class="card erp-card">
+
+        <div class="card-body p-0">
+
+            @if (Model.Items.Count > 0)
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th style="width: 60px;">
+                                    #
+                                </th>
+
+                                <th>
+                                    Số phiếu
+                                </th>
+
+                                <th>
+                                    Nhà cung cấp/NXB
+                                </th>
+
+                                <th>
+                                    Kho
+                                </th>
+
+                                <th>
+                                    Ngày nhập
+                                </th>
+
+                                <th class="text-center">
+                                    Số dòng
+                                </th>
+
+                                <th class="text-end">
+                                    Tổng SL
+                                </th>
+
+                                <th>
+                                    Người tạo
+                                </th>
+
+                                <th class="text-center">
+                                    Trạng thái
+                                </th>
+
+                                <th class="text-end"
+                                    style="width: 100px;">
+                                    Thao tác
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @{
+                                var index =
+                                    ((Model.Pagination.Page - 1)
+                                    * Model.Pagination.PageSize) + 1;
+                            }
+
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+
+                                    <!-- STT -->
+
+                                    <td class="text-muted">
+                                        @index
+                                    </td>
+
+
+                                    <!-- Receipt No -->
+
+                                    <td>
+
+                                        <a asp-controller="Inbound"
+                                           asp-action="Detail"
+                                           asp-route-id="@item.Id"
+                                           class="fw-semibold text-decoration-none">
+
+                                            @item.ReceiptNo
+
+                                        </a>
+
+                                    </td>
+
+
+                                    <!-- Supplier -->
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(item.SupplierName)
+                                            ? "-"
+                                            : item.SupplierName)
+                                    </td>
+
+
+                                    <!-- Warehouse -->
+
+                                    <td>
+                                        @item.WarehouseName
+                                    </td>
+
+
+                                    <!-- Date -->
+
+                                    <td>
+                                        @item.ReceiptDate.ToString("dd/MM/yyyy")
+                                    </td>
+
+
+                                    <!-- Lines -->
+
+                                    <td class="text-center">
+                                        @item.LineCount
+                                    </td>
+
+
+                                    <!-- Quantity -->
+
+                                    <td class="text-end">
+                                        @item.TotalQuantity.ToString("N0")
+                                    </td>
+
+
+                                    <!-- Creator -->
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(item.CreatorName)
+                                            ? "-"
+                                            : item.CreatorName)
+                                    </td>
+
+
+                                    <!-- Status -->
+
+                                    <td class="text-center">
+
+                                        <span class="badge @GetStatusClass(item.Status)">
+                                            @GetStatusText(item.Status)
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- Actions -->
+
+                                    <td class="text-end">
+
+                                        <div class="dropdown">
+
+                                            <button class="btn btn-sm btn-light"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false">
+
+                                                <i class="bi bi-three-dots"></i>
+
+                                            </button>
+
+                                            <ul class="dropdown-menu dropdown-menu-end">
+
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                       asp-controller="Inbound"
+                                                       asp-action="Detail"
+                                                       asp-route-id="@item.Id">
+
+                                                        <i class="bi bi-eye me-2"></i>
+                                                        Xem chi tiết
+
+                                                    </a>
+                                                </li>
+
+
+                                                @if (item.Status == "DRAFT" &&
+                                                     (User.IsInRole("ADMIN") ||
+                                                      User.IsInRole("WAREHOUSE_MANAGER") ||
+                                                      User.IsInRole("WAREHOUSE_OPERATOR")))
+                                                {
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                           asp-controller="Inbound"
+                                                           asp-action="Edit"
+                                                           asp-route-id="@item.Id">
+
+                                                            <i class="bi bi-pencil me-2"></i>
+                                                            Sửa
+
+                                                        </a>
+                                                    </li>
+                                                }
+
+                                            </ul>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                index++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <div class="text-muted mb-2">
+                        <i class="bi bi-inbox fs-1"></i>
+                    </div>
+
+                    <div class="fw-semibold">
+                        Không có phiếu nhập
+                    </div>
+
+                    <div class="text-muted small mt-1">
+                        Chưa có dữ liệu phù hợp với điều kiện tìm kiếm.
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- PAGINATION -->
+        <!-- ================================================= -->
+
+        @if (Model.Pagination.TotalItems > 0)
+        {
+            <div class="card-footer bg-white">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <div class="text-muted small">
+
+                        Hiển thị
+
+                        <strong>
+                            @Model.Pagination.FirstItemIndex
+                        </strong>
+
+                        –
+
+                        <strong>
+                            @Model.Pagination.LastItemIndex
+                        </strong>
+
+                        /
+
+                        <strong>
+                            @Model.Pagination.TotalItems
+                        </strong>
+
+                        bản ghi
+
+                    </div>
+
+
+                    @if (totalPages > 1)
+                    {
+                        <nav aria-label="Phân trang">
+
+                            <ul class="pagination pagination-sm mb-0">
+
+                                <!-- Previous -->
+
+                                @if (Model.Pagination.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+
+                                        <a class="page-link"
+                                           href="@BuildPageUrl(currentPage - 1)">
+
+                                            ‹
+
+                                        </a>
+
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+
+                                        <span class="page-link">
+                                            ‹
+                                        </span>
+
+                                    </li>
+                                }
+
+
+                                <!-- Page Numbers -->
+
+                                @for (var currentPageNumber = 1;
+                                      currentPageNumber <= totalPages;
+                                      currentPageNumber++)
+                                {
+                                    if (currentPageNumber == currentPage)
+                                    {
+                                        <li class="page-item active">
+
+                                            <span class="page-link">
+                                                @currentPageNumber
+                                            </span>
+
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+
+                                            <a class="page-link"
+                                               href="@BuildPageUrl(currentPageNumber)">
+
+                                                @currentPageNumber
+
+                                            </a>
+
+                                        </li>
+                                    }
+                                }
+
+
+                                <!-- Next -->
+
+                                @if (Model.Pagination.HasNextPage)
+                                {
+                                    <li class="page-item">
+
+                                        <a class="page-link"
+                                           href="@BuildPageUrl(currentPage + 1)">
+
+                                            ›
+
+                                        </a>
+
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+
+                                        <span class="page-link">
+                                            ›
+                                        </span>
+
+                                    </li>
+                                }
+
+                            </ul>
+
+                        </nav>
+                    }
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+

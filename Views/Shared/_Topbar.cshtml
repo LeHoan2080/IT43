@@ -1,0 +1,105 @@
+<header class="erp-topbar">
+
+    <!-- LEFT -->
+    <div class="erp-topbar-left">
+
+        <button type="button"
+                class="erp-sidebar-toggle"
+                id="sidebarToggle"
+                title="Thu gọn menu">
+
+            ☰
+
+        </button>
+
+
+        <div class="erp-topbar-system">
+            Quản lý kho
+        </div>
+
+    </div>
+
+
+    <!-- SEARCH -->
+    <div class="erp-global-search">
+
+        <span class="erp-search-icon">
+            🔍
+        </span>
+
+        <input type="text"
+               class="form-control"
+               placeholder="Tìm kiếm..." />
+
+    </div>
+
+
+    <!-- RIGHT -->
+    <div class="erp-topbar-right">
+
+        <!-- Notification -->
+        <button class="erp-topbar-button"
+                type="button"
+                title="Thông báo">
+
+            🔔
+
+        </button>
+
+
+        <!-- User -->
+        <div class="dropdown">
+
+            <button class="erp-user-button dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+
+                <span class="erp-avatar">
+                    H
+                </span>
+
+                <span class="erp-user-name">
+                    Hoàn
+                </span>
+
+            </button>
+
+
+            <ul class="dropdown-menu dropdown-menu-end">
+
+                <li>
+                    <a class="dropdown-item"
+                       asp-controller="Account"
+                       asp-action="Profile">
+
+                        Tài khoản
+
+                    </a>
+                </li>
+
+                <li>
+                    <hr class="dropdown-divider" />
+                </li>
+
+                <li>
+                    <form asp-controller="Auth"
+                          asp-action="Logout"
+                          method="post">
+
+                        <button type="submit"
+                                class="dropdown-item">
+
+                            Đăng xuất
+
+                        </button>
+
+                    </form>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</header>

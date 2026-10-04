@@ -1,0 +1,687 @@
+@model StationeryWarehouse.Models.Warehouse.WarehouseIndexViewModel
+
+@{
+    ViewData["Title"] = "Kho & vị trí";
+
+    var selectedWarehouseId =
+        ViewBag.SelectedWarehouseId as long?;
+}
+
+<div class="page-header mb-3">
+    <div>
+        <h1 class="h4 mb-1">
+            Kho & vị trí
+        </h1>
+
+        <div class="text-muted">
+            Quản lý kho, khu vực và các vị trí lưu trữ trong kho
+        </div>
+    </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- DANH SÁCH KHO -->
+<!-- ========================================================= -->
+
+<div class="card shadow-sm mb-3">
+
+    <div class="card-header bg-white
+                d-flex justify-content-between
+                align-items-center">
+
+        <div>
+            <strong>Danh sách kho</strong>
+        </div>
+
+        <a asp-controller="Warehouse"
+           asp-action="CreateWarehouse"
+           class="btn btn-primary btn-sm">
+
+            <i class="bi bi-plus-lg"></i>
+            Tạo kho
+
+        </a>
+
+    </div>
+
+
+    <div class="table-responsive">
+
+        <table class="table table-hover
+                      align-middle mb-0">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th style="width: 120px;">
+                        Mã kho
+                    </th>
+
+                    <th>
+                        Tên kho
+                    </th>
+
+                    <th>
+                        Địa chỉ
+                    </th>
+
+                    <th class="text-center"
+                        style="width: 120px;">
+                        Số vị trí
+                    </th>
+
+                    <th class="text-center"
+                        style="width: 120px;">
+                        Trạng thái
+                    </th>
+
+                    <th class="text-end"
+                        style="width: 100px;">
+                        Thao tác
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @if (Model.Warehouses.Any())
+                {
+                    foreach (var warehouse in Model.Warehouses)
+                    {
+                        <tr>
+
+                            <td>
+                                <span class="fw-semibold">
+                                    @warehouse.Code
+                                </span>
+                            </td>
+
+
+                            <td>
+                                @warehouse.Name
+                            </td>
+
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(
+                                    warehouse.Address))
+                                {
+                                    <span>
+                                        @warehouse.Address
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        -
+                                    </span>
+                                }
+                            </td>
+
+
+                            <td class="text-center">
+                                @warehouse.LocationCount
+                            </td>
+
+
+                            <td class="text-center">
+
+                                @if (warehouse.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Ngừng hoạt động
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td class="text-end">
+
+                                <div class="btn-group btn-group-sm">
+
+                                    <a asp-controller="Warehouse"
+                                       asp-action="Index"
+                                       asp-route-warehouseId="@warehouse.Id"
+                                       class="btn btn-outline-secondary"
+                                       title="Xem vị trí">
+
+                                        Xem
+
+                                    </a>
+
+
+                                    <a asp-controller="Warehouse"
+                                       asp-action="EditWarehouse"
+                                       asp-route-id="@warehouse.Id"
+                                       class="btn btn-outline-primary"
+                                       title="Sửa kho">
+
+                                        Sửa
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="6"
+                            class="text-center py-5">
+
+                            <div class="text-muted">
+                                Chưa có kho nào.
+                            </div>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- DANH SÁCH VỊ TRÍ -->
+<!-- ========================================================= -->
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-white">
+
+        <div class="d-flex
+                    justify-content-between
+                    align-items-center
+                    flex-wrap gap-2">
+
+            <div>
+
+                <strong>
+                    Danh sách vị trí
+                </strong>
+
+                @if (selectedWarehouseId.HasValue)
+                {
+                    var selectedWarehouse =
+                        Model.Warehouses.FirstOrDefault(
+                            x => x.Id ==
+                                 selectedWarehouseId.Value);
+
+                    if (selectedWarehouse != null)
+                    {
+                        <span class="text-muted ms-2">
+                            —
+                            @selectedWarehouse.Code
+                            -
+                            @selectedWarehouse.Name
+                        </span>
+                    }
+                }
+
+            </div>
+
+
+            <div class="d-flex gap-2">
+
+                @if (selectedWarehouseId.HasValue)
+                {
+                    <a asp-controller="Warehouse"
+                       asp-action="CreateLocation"
+                       asp-route-warehouseId="@selectedWarehouseId"
+                       class="btn btn-primary btn-sm">
+
+                        + Tạo vị trí
+
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Warehouse"
+                       asp-action="CreateLocation"
+                       class="btn btn-primary btn-sm">
+
+                        + Tạo vị trí
+
+                    </a>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BỘ LỌC -->
+
+    <div class="card-body border-bottom">
+
+        <form method="get"
+              asp-controller="Warehouse"
+              asp-action="Index">
+
+            <input type="hidden"
+                   name="page"
+                   value="1" />
+
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Kho
+                    </label>
+
+                    <select name="warehouseId"
+                            class="form-select">
+
+                        <option value="">
+                            Tất cả kho
+                        </option>
+
+                        @foreach (var warehouse
+                                 in Model.Warehouses)
+                        {
+                            if (selectedWarehouseId.HasValue &&
+                                selectedWarehouseId.Value ==
+                                warehouse.Id)
+                            {
+                                <option value="@warehouse.Id"
+                                        selected>
+                                    @warehouse.Code -
+                                    @warehouse.Name
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@warehouse.Id">
+                                    @warehouse.Code -
+                                    @warehouse.Name
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-auto">
+
+                    <button type="submit"
+                            class="btn btn-outline-primary">
+
+                        Lọc
+
+                    </button>
+
+                </div>
+
+
+                <div class="col-md-auto">
+
+                    <a asp-controller="Warehouse"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Xóa lọc
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- BẢNG VỊ TRÍ -->
+
+    <div class="table-responsive">
+
+        <table class="table table-hover
+                      align-middle mb-0">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th style="width: 110px;">
+                        Mã vị trí
+                    </th>
+
+                    <th>
+                        Tên vị trí
+                    </th>
+
+                    @if (!selectedWarehouseId.HasValue)
+                    {
+                        <th>
+                            Kho
+                        </th>
+                    }
+
+                    <th style="width: 110px;">
+                        Loại
+                    </th>
+
+                    <th style="width: 150px;">
+                        Barcode
+                    </th>
+
+                    <th class="text-center"
+                        style="width: 120px;">
+                        Sản phẩm tồn
+                    </th>
+
+                    <th class="text-center"
+                        style="width: 120px;">
+                        Trạng thái
+                    </th>
+
+                    <th class="text-end"
+                        style="width: 100px;">
+                        Thao tác
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @if (Model.Locations.Any())
+                {
+                    foreach (var location
+                             in Model.Locations)
+                    {
+                        <tr>
+
+                            <td>
+                                <span class="fw-semibold">
+                                    @location.Code
+                                </span>
+                            </td>
+
+
+                            <td>
+
+                                <div>
+                                    @location.Name
+                                </div>
+
+                                @if (location.ParentId.HasValue)
+                                {
+                                    <div class="small text-muted">
+                                        Có vị trí cha
+                                    </div>
+                                }
+
+                            </td>
+
+
+                            @if (!selectedWarehouseId.HasValue)
+                            {
+                                <td>
+                                    <div>
+                                        @location.WarehouseName
+                                    </div>
+                                </td>
+                            }
+
+
+                            <td>
+
+                                @if (location.LocationType == "AREA")
+                                {
+                                    <span class="badge
+                                                 bg-info-subtle
+                                                 text-info-emphasis">
+
+                                        Khu vực
+
+                                    </span>
+                                }
+                                else if (
+                                    location.LocationType == "BIN")
+                                {
+                                    <span class="badge
+                                                 bg-primary-subtle
+                                                 text-primary-emphasis">
+
+                                        BIN
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+
+                                        @location.LocationType
+
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td>
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    location.Barcode))
+                                {
+                                    <span>
+                                        @location.Barcode
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        -
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td class="text-center">
+
+                                @if (location.StockProductCount > 0)
+                                {
+                                    <span class="fw-semibold">
+                                        @location.StockProductCount
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        0
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td class="text-center">
+
+                                @if (location.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Ngừng hoạt động
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td class="text-end">
+
+                                <a asp-controller="Warehouse"
+                                   asp-action="EditLocation"
+                                   asp-route-id="@location.Id"
+                                   class="btn btn-sm
+                                          btn-outline-primary">
+
+                                    Sửa
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="8"
+                            class="text-center py-5">
+
+                            <div class="text-muted">
+
+                                @if (selectedWarehouseId.HasValue)
+                                {
+                                    <span>
+                                        Kho này chưa có vị trí nào.
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        Chưa có vị trí nào.
+                                    </span>
+                                }
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- PHÂN TRANG -->
+
+    <div class="card-body">
+
+        @{
+            var pagination =
+                Model.LocationPagination;
+
+            var previousPage =
+                Math.Max(
+                    1,
+                    pagination.Page - 1);
+
+            var nextPage =
+                Math.Min(
+                    pagination.TotalPages,
+                    pagination.Page + 1);
+
+
+            var previousPageUrl =
+                Url.Action(
+                    "Index",
+                    "Warehouse",
+                    new
+                    {
+                        warehouseId =
+                            selectedWarehouseId,
+                        page =
+                            previousPage
+                    });
+
+
+            var nextPageUrl =
+                Url.Action(
+                    "Index",
+                    "Warehouse",
+                    new
+                    {
+                        warehouseId =
+                            selectedWarehouseId,
+                        page =
+                            nextPage
+                    });
+
+
+            var pageUrls =
+                new Dictionary<int, string?>();
+
+
+            for (
+                var currentPage = 1;
+                currentPage <= pagination.TotalPages;
+                currentPage++)
+            {
+                pageUrls[currentPage] =
+                    Url.Action(
+                        "Index",
+                        "Warehouse",
+                        new
+                        {
+                            warehouseId =
+                                selectedWarehouseId,
+                            page =
+                                currentPage
+                        });
+            }
+
+
+            ViewBag.PreviousPageUrl =
+                previousPageUrl;
+
+            ViewBag.NextPageUrl =
+                nextPageUrl;
+
+            ViewBag.PageUrls =
+                pageUrls;
+        }
+
+
+        <partial name="_Pagination"
+                 model="pagination" />
+
+    </div>
+
+</div>

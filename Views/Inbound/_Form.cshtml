@@ -1,0 +1,561 @@
+@model StationeryWarehouse.Models.Inbound.InboundFormViewModel
+
+@{
+    var isEdit = Model.Id > 0;
+}
+
+<form asp-action="@(isEdit ? "Edit" : "Create")"
+      method="post"
+      id="inboundForm">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           asp-for="Id" />
+
+    <input type="hidden"
+           asp-for="ReceiptNo" />
+
+    <input type="hidden"
+           asp-for="Status" />
+
+
+    <!-- ===================================================== -->
+    <!-- VALIDATION SUMMARY -->
+    <!-- ===================================================== -->
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger"
+         role="alert">
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- THÔNG TIN PHIẾU -->
+    <!-- ===================================================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <strong>
+                <i class="bi bi-file-earmark-text me-1"></i>
+                Thông tin phiếu nhập
+            </strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <!-- Số phiếu -->
+
+                <div class="col-md-4">
+
+                    <label asp-for="ReceiptNo"
+                           class="form-label">
+                        Số phiếu
+                    </label>
+
+                    <input asp-for="ReceiptNo"
+                           class="form-control"
+                           readonly />
+
+                </div>
+
+
+                <!-- Nhà cung cấp -->
+
+                <div class="col-md-4">
+
+                    <label asp-for="SupplierName"
+                           class="form-label">
+                        Nhà cung cấp/NXB
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <input asp-for="SupplierName"
+                           class="form-control"
+                           placeholder="Nhập nhà cung cấp hoặc NXB..." />
+
+                    <span asp-validation-for="SupplierName"
+                          class="text-danger small">
+                    </span>
+
+                </div>
+
+
+                <!-- Kho nhận -->
+
+                <div class="col-md-4">
+
+                    <label asp-for="WarehouseId"
+                           class="form-label">
+                        Kho nhận
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <select asp-for="WarehouseId"
+                            class="form-select"
+                            id="WarehouseId">
+
+                        <option value="">
+                            -- Chọn kho nhận --
+                        </option>
+
+                        @foreach (var warehouse in Model.Warehouses)
+                        {
+                            <option value="@warehouse.Id">
+                                @warehouse.Code -
+                                @warehouse.Name
+                            </option>
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="WarehouseId"
+                          class="text-danger small">
+                    </span>
+
+                    <div class="form-text">
+                        Bin được chọn phải thuộc kho nhận.
+                    </div>
+
+                </div>
+
+
+                <!-- Ngày nhập -->
+
+                <div class="col-md-4">
+
+                    <label asp-for="ReceiptDate"
+                           class="form-label">
+                        Ngày nhập
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <input asp-for="ReceiptDate"
+                           type="date"
+                           class="form-control" />
+
+                    <span asp-validation-for="ReceiptDate"
+                          class="text-danger small">
+                    </span>
+
+                </div>
+
+
+                <!-- Trạng thái -->
+
+                <div class="col-md-4">
+
+                    <label asp-for="Status"
+                           class="form-label">
+                        Trạng thái
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           value="@Model.Status"
+                           readonly />
+
+                </div>
+
+
+                <!-- Ghi chú -->
+
+                <div class="col-md-12">
+
+                    <label asp-for="Note"
+                           class="form-label">
+                        Ghi chú
+                    </label>
+
+                    <textarea asp-for="Note"
+                              class="form-control"
+                              rows="3"
+                              maxlength="1000"
+                              placeholder="Nhập ghi chú nếu có..."></textarea>
+
+                    <span asp-validation-for="Note"
+                          class="text-danger small">
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- CHI TIẾT NHẬP KHO -->
+    <!-- ===================================================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <strong>
+                <i class="bi bi-box-seam me-1"></i>
+                Chi tiết nhập kho
+            </strong>
+
+            <button type="button"
+                    id="btnAddInboundLine"
+                    class="btn btn-sm btn-outline-primary">
+
+                <i class="bi bi-plus-lg me-1"></i>
+                Thêm dòng
+
+            </button>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th style="min-width: 230px;">
+                                Sản phẩm
+                            </th>
+
+                            <th style="min-width: 190px;">
+                                Thông tin
+                            </th>
+
+                            <th style="width: 120px;">
+                                SL dự kiến
+                            </th>
+
+                            <th style="width: 120px;">
+                                SL thực nhận
+                            </th>
+
+                            <th style="min-width: 200px;">
+                                Barcode / Mã Bin
+                            </th>
+
+                            <th style="min-width: 170px;">
+                                Vị trí
+                            </th>
+
+                            <th style="min-width: 160px;">
+                                Ghi chú
+                            </th>
+
+                            <th style="width: 55px;">
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="inboundLinesBody">
+
+                        @if (Model.Lines != null &&
+                             Model.Lines.Count > 0)
+                        {
+                            for (var i = 0;
+                                 i < Model.Lines.Count;
+                                 i++)
+                            {
+                                <tr class="inbound-line">
+
+                                    <!-- ================================= -->
+                                    <!-- PRODUCT -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <input type="hidden"
+                                               asp-for="Lines[i].Id" />
+
+                                        <input type="hidden"
+                                               asp-for="Lines[i].ProductId"
+                                               class="product-id" />
+
+
+                                        <input type="text"
+                                               class="form-control form-control-sm product-keyword"
+                                               value="@Model.Lines[i].ProductBarcode"
+                                               placeholder="Barcode / Mã SP / ISBN"
+                                               autocomplete="off" />
+
+
+                                        <div class="product-result small mt-1">
+                                        </div>
+
+
+                                        <span asp-validation-for="Lines[i].ProductId"
+                                              class="text-danger small">
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- PRODUCT INFO -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <div class="product-display fw-medium">
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                Model.Lines[i].ProductDisplay))
+                                            {
+                                                @Model.Lines[i].ProductDisplay
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+                                                    Chưa chọn sản phẩm
+                                                </span>
+                                            }
+
+                                        </div>
+
+
+                                        <div class="product-meta small text-muted">
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                Model.Lines[i].ISBN))
+                                            {
+                                                <span>
+                                                    ISBN:
+                                                    @Model.Lines[i].ISBN
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- EXPECTED QUANTITY -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <input asp-for="Lines[i].ExpectedQty"
+                                               class="form-control form-control-sm expected-qty"
+                                               type="number"
+                                               min="0"
+                                               step="1" />
+
+                                        <span asp-validation-for="Lines[i].ExpectedQty"
+                                              class="text-danger small">
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- RECEIVED QUANTITY -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <input asp-for="Lines[i].ReceivedQty"
+                                               class="form-control form-control-sm received-qty"
+                                               type="number"
+                                               min="0"
+                                               step="1" />
+
+                                        <span asp-validation-for="Lines[i].ReceivedQty"
+                                              class="text-danger small">
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- LOCATION SEARCH -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <input type="hidden"
+                                               asp-for="Lines[i].LocationId"
+                                               class="location-id" />
+
+
+                                        <input type="text"
+                                               class="form-control form-control-sm location-keyword"
+                                               placeholder="Barcode / Mã Bin"
+                                               autocomplete="off" />
+
+
+                                        <div class="location-result small mt-1">
+                                        </div>
+
+
+                                        <span asp-validation-for="Lines[i].LocationId"
+                                              class="text-danger small">
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- LOCATION DISPLAY -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <input type="text"
+                                               class="form-control form-control-sm location-display"
+                                               value="@Model.Lines[i].LocationDisplay"
+                                               readonly
+                                               placeholder="Chưa chọn Bin" />
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- NOTE -->
+                                    <!-- ================================= -->
+
+                                    <td>
+
+                                        <input asp-for="Lines[i].Note"
+                                               class="form-control form-control-sm"
+                                               maxlength="500"
+                                               placeholder="Ghi chú..." />
+
+                                        <span asp-validation-for="Lines[i].Note"
+                                              class="text-danger small">
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================================= -->
+                                    <!-- REMOVE -->
+                                    <!-- ================================= -->
+
+                                    <td class="text-center">
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger btn-remove-line"
+                                                title="Xóa dòng">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr class="inbound-empty-row">
+
+                                <td colspan="8"
+                                    class="text-center text-muted py-4">
+
+                                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+
+                                    Chưa có sản phẩm.
+                                    Nhấn
+                                    <strong>Thêm dòng</strong>
+                                    để bắt đầu nhập kho.
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- HƯỚNG DẪN -->
+        <!-- ===================================================== -->
+
+        <div class="card-footer bg-light">
+
+            <div class="small text-muted">
+
+                <div class="mb-1">
+                    <i class="bi bi-info-circle me-1"></i>
+
+                    <strong>Sản phẩm:</strong>
+                    nhập hoặc quét Barcode,
+                    mã sản phẩm hoặc ISBN rồi nhấn Enter.
+                </div>
+
+                <div class="mb-1">
+                    <i class="bi bi-upc-scan me-1"></i>
+
+                    <strong>Bin:</strong>
+                    nhập hoặc quét Barcode vị trí
+                    rồi nhấn Enter.
+                </div>
+
+                <div>
+                    <i class="bi bi-boxes me-1"></i>
+
+                    Một sản phẩm có thể được chia
+                    thành nhiều dòng để cất ở nhiều Bin.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ACTION -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Quay lại
+
+        </a>
+
+
+        <div class="d-flex gap-2">
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-save me-1"></i>
+
+                @(isEdit ? "Lưu thay đổi" : "Lưu nháp")
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+

@@ -1,0 +1,351 @@
+@model StationeryWarehouse.Models.Inventory.InventoryDetailViewModel
+
+@{
+    ViewData["Title"] = Model.ProductName;
+}
+
+<div class="erp-page-header">
+
+    <div>
+
+        <div class="mb-2">
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="text-decoration-none">
+                ← Tồn kho
+            </a>
+        </div>
+
+        <h1 class="erp-page-title">
+            @Model.ProductName
+        </h1>
+
+        <div class="erp-page-subtitle">
+            @Model.ProductCode
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- PRODUCT INFORMATION -->
+<!-- ========================= -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <strong>Thông tin sản phẩm</strong>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-3">
+                <label class="text-muted small">
+                    Mã sản phẩm
+                </label>
+
+                <div class="fw-semibold">
+                    @Model.ProductCode
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="text-muted small">
+                    Barcode
+                </label>
+
+                <div>
+                    @(Model.Barcode ?? "-")
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="text-muted small">
+                    ISBN
+                </label>
+
+                <div>
+                    @(Model.ISBN ?? "-")
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="text-muted small">
+                    Loại
+                </label>
+
+                <div>
+                    @Model.ProductType
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="text-muted small">
+                    Đơn vị tính
+                </label>
+
+                <div>
+                    @Model.Unit
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="text-muted small">
+                    Min Stock
+                </label>
+
+                <div>
+                    @Model.MinStock
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Author))
+            {
+                <div class="col-md-3">
+
+                    <label class="text-muted small">
+                        Tác giả
+                    </label>
+
+                    <div>
+                        @Model.Author
+                    </div>
+
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Publisher))
+            {
+                <div class="col-md-3">
+
+                    <label class="text-muted small">
+                        NXB / Nhà cung cấp
+                    </label>
+
+                    <div>
+                        @Model.Publisher
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- STOCK SUMMARY -->
+<!-- ========================= -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <strong>Tổng tồn</strong>
+    </div>
+
+    <div class="card-body">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <span class="fs-2 fw-bold">
+                @Model.TotalQuantity
+            </span>
+
+            <span>
+                @Model.Unit
+            </span>
+
+            @if (Model.IsLowStock)
+            {
+                <span class="erp-badge erp-badge-danger">
+                    LOW STOCK
+                </span>
+            }
+            else
+            {
+                <span class="erp-badge erp-badge-success">
+                    OK
+                </span>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- STOCK BY LOCATION -->
+<!-- ========================= -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <strong>Tồn theo vị trí</strong>
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table erp-table mb-0">
+
+            <thead>
+
+                <tr>
+                    <th>Kho</th>
+                    <th>Mã vị trí</th>
+                    <th>Tên vị trí</th>
+                    <th class="text-end">
+                        Số lượng
+                    </th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (Model.Locations.Count == 0)
+                {
+                    <tr>
+
+                        <td colspan="4"
+                            class="text-center text-muted py-4">
+
+                            Sản phẩm chưa có tồn tại vị trí nào.
+
+                        </td>
+
+                    </tr>
+                }
+                else
+                {
+                    foreach (var location in Model.Locations)
+                    {
+                        <tr>
+
+                            <td>
+                                @location.WarehouseName
+                            </td>
+
+                            <td>
+                                @location.LocationCode
+                            </td>
+
+                            <td>
+                                @location.LocationName
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                @location.Quantity
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- MOVEMENT HISTORY -->
+<!-- ========================= -->
+
+<div class="card">
+
+    <div class="card-header">
+        <strong>Lịch sử biến động</strong>
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table erp-table mb-0">
+
+            <thead>
+
+                <tr>
+                    <th>Ngày</th>
+                    <th>Chứng từ</th>
+                    <th>Loại</th>
+                    <th class="text-end">
+                        Số lượng
+                    </th>
+                    <th>Vị trí</th>
+                    <th>Người thực hiện</th>
+                    <th>Ghi chú</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (Model.Movements.Count == 0)
+                {
+                    <tr>
+
+                        <td colspan="7"
+                            class="text-center text-muted py-4">
+
+                            Chưa có lịch sử biến động.
+
+                        </td>
+
+                    </tr>
+                }
+                else
+                {
+                    foreach (var movement in Model.Movements)
+                    {
+                        <tr>
+
+                            <td>
+                                @movement.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+
+                            <td>
+                                @(movement.ReferenceNo ?? "-")
+                            </td>
+
+                            <td>
+                                @movement.MovementType
+                            </td>
+
+                            <td class="text-end">
+                                @movement.Quantity
+                            </td>
+
+                            <td>
+                                @movement.LocationCode
+                            </td>
+
+                            <td>
+                                @movement.UserName
+                            </td>
+
+                            <td>
+                                @(movement.Note ?? "-")
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
