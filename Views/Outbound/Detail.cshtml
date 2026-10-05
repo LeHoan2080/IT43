@@ -1,0 +1,341 @@
+@model StationeryWarehouse.Models.Outbound.OutboundFormViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết phiếu xuất";
+}
+
+<div class="container-fluid py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <div class="text-muted small">
+                Quản lý kho / Xuất kho
+            </div>
+
+            <h4 class="mb-0">
+                Chi tiết phiếu xuất
+            </h4>
+
+        </div>
+
+        <a asp-controller="Outbound"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Quay lại
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow-sm border-0">
+
+        <!-- STATUS -->
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <span class="text-muted">
+                        Số phiếu:
+                    </span>
+
+                    <strong>
+                        @Model.IssueNo
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    @switch (Model.Status)
+                    {
+                        case "DRAFT":
+                            <span class="badge bg-secondary">
+                                Nháp
+                            </span>
+                            break;
+
+                        case "PICKING":
+                            <span class="badge bg-warning text-dark">
+                                Đang lấy hàng
+                            </span>
+                            break;
+
+                        case "DONE":
+                            <span class="badge bg-success">
+                                Hoàn tất
+                            </span>
+                            break;
+
+                        case "CANCELLED":
+                            <span class="badge bg-danger">
+                                Đã hủy
+                            </span>
+                            break;
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- HEADER -->
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Kho xuất
+                    </div>
+
+                    <div class="fw-semibold">
+                        @{
+                            var warehouse = Model.Warehouses
+                                .FirstOrDefault(x => x.Id == Model.WarehouseId);
+                        }
+
+                        @(warehouse == null
+                            ? Model.WarehouseId.ToString()
+                            : $"{warehouse.Code} - {warehouse.Name}")
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Lý do xuất
+                    </div>
+
+                    <div class="fw-semibold">
+                        @Model.IssueReason
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Ngày xuất
+                    </div>
+
+                    <div class="fw-semibold">
+                        @Model.IssueDate.ToString("dd/MM/yyyy")
+                    </div>
+
+                </div>
+
+
+                <div class="col-12">
+
+                    <div class="text-muted small">
+                        Ghi chú
+                    </div>
+
+                    <div>
+                        @(string.IsNullOrWhiteSpace(Model.Note)
+                            ? "-"
+                            : Model.Note)
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LINES -->
+        <div class="card-body border-top">
+
+            <h6 class="mb-3">
+                Danh sách sản phẩm
+            </h6>
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Sản phẩm
+                            </th>
+
+                            <th>
+                                Barcode
+                            </th>
+
+                            <th>
+                                Bin
+                            </th>
+
+                            <th class="text-end">
+                                Tồn
+                            </th>
+
+                            <th class="text-end">
+                                SL yêu cầu
+                            </th>
+
+                            <th class="text-end">
+                                SL đã lấy
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var line in Model.Lines)
+                        {
+                            <tr>
+
+                                <td>
+                                    @line.ProductDisplay
+                                </td>
+
+                                <td>
+                                    @line.ProductBarcode
+                                </td>
+
+                                <td>
+                                    @line.LocationDisplay
+                                </td>
+
+                                <td class="text-end">
+                                    @line.BinStock
+                                </td>
+
+                                <td class="text-end">
+                                    @line.RequestedQty
+                                </td>
+
+                                <td class="text-end">
+                                    @line.PickedQty
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                    <tfoot class="table-light">
+
+                        <tr>
+
+                            <th colspan="4"
+                                class="text-end">
+                                Tổng
+                            </th>
+
+                            <th class="text-end">
+                                @Model.Lines.Sum(x => x.RequestedQty)
+                            </th>
+
+                            <th class="text-end">
+                                @Model.Lines.Sum(x => x.PickedQty)
+                            </th>
+
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTION -->
+        <div class="card-footer bg-white">
+
+            <div class="d-flex justify-content-between">
+
+                <a asp-controller="Outbound"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+
+                    Quay lại
+
+                </a>
+
+
+                <div class="d-flex gap-2">
+
+                    @if (Model.Status == "DRAFT"
+                        && (User.IsInRole("ADMIN")
+                        || User.IsInRole("WAREHOUSE_MANAGER")
+                        || User.IsInRole("WAREHOUSE_OPERATOR")))
+                    {
+                        <a asp-controller="Outbound"
+                           asp-action="Edit"
+                           asp-route-id="@Model.Id"
+                           class="btn btn-primary">
+
+                            <i class="bi bi-pencil"></i>
+                            Sửa
+
+                        </a>
+
+                        <form asp-controller="Outbound"
+                              asp-action="StartPicking"
+                              asp-route-id="@Model.Id"
+                              method="post"
+                              class="d-inline">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-success">
+
+                                <i class="bi bi-box-arrow-down"></i>
+                                Bắt đầu lấy hàng
+
+                            </button>
+
+                        </form>
+                    }
+
+                    @if (Model.Status == "PICKING"
+                        && (User.IsInRole("ADMIN")
+                        || User.IsInRole("WAREHOUSE_MANAGER")
+                        || User.IsInRole("WAREHOUSE_OPERATOR")))
+                    {
+                        <a asp-controller="Outbound"
+                           asp-action="Edit"
+                           asp-route-id="@Model.Id"
+                           class="btn btn-success">
+
+                            <i class="bi bi-box-arrow-down"></i>
+                            Tiếp tục lấy hàng
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

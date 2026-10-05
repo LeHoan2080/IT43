@@ -11,6 +11,8 @@ using StationeryWarehouse.Services;
 using StationeryWarehouse.Services.Inventory;
 using StationeryWarehouse.Services.Warehouse;
 using StationeryWarehouse.Services.Inbound;
+using StationeryWarehouse.Services.Outbound;
+using StationeryWarehouse.Services.Transfer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -230,6 +232,21 @@ builder.Services.AddScoped<
     IInboundService,
     InboundService
 >();
+
+// ------------------------------------------------------------
+// S05 - Xuất kho
+// ------------------------------------------------------------ 
+
+builder.Services.AddScoped<
+    IOutboundService,
+    OutboundService>();
+
+// ------------------------------------------------------------
+// S06 - Chuyển kho
+// ------------------------------------------------------------
+builder.Services.AddScoped<
+    ITransferService,
+    TransferService>();
 
 // ============================================================
 // 7. BUILD APPLICATION

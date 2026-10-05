@@ -1,0 +1,37 @@
+@model StationeryWarehouse.Models.Outbound.OutboundFormViewModel
+
+@{
+    ViewData["Title"] = "Tạo phiếu xuất";
+}
+
+<div class="container-fluid py-3">
+
+    <div class="mb-3">
+
+        <div class="text-muted small">
+            Quản lý kho / Xuất kho
+        </div>
+
+        <h4 class="mb-0">
+            Tạo phiếu xuất
+        </h4>
+
+    </div>
+
+    <form asp-controller="Outbound"
+          asp-action="Create"
+          method="post"
+          id="outboundForm">
+
+        @Html.AntiForgeryToken()
+
+        <partial name="_Form" model="Model" />
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <script src="~/js/outbound.js" asp-append-version="true"></script>
+}

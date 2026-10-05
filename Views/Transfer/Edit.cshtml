@@ -1,0 +1,55 @@
+@model StationeryWarehouse.Models.Transfer.TransferFormViewModel
+
+@{
+    ViewData["Title"] = "Sửa phiếu điều chuyển";
+}
+
+<div class="container-fluid py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h4 class="mb-1">
+                <i class="bi bi-pencil-square"></i>
+                Sửa phiếu điều chuyển
+            </h4>
+
+            <div class="text-muted small">
+                Phiếu @Model.TransferNo
+            </div>
+        </div>
+
+        <a asp-action="Detail"
+           asp-route-id="@Model.Id"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Quay lại
+        </a>
+
+    </div>
+
+    <form asp-action="Edit"
+          method="post"
+          id="transferForm">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"></div>
+
+        @await Html.PartialAsync(
+            "_Form",
+            Model)
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/transfer.js"
+            asp-append-version="true"></script>
+}

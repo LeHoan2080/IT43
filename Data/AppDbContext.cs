@@ -18,10 +18,12 @@ public class AppDbContext : DbContext
     public DbSet<Location> Locations => Set<Location>();
     public DbSet<InventoryBalance> InventoryBalances => Set<InventoryBalance>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
-
     public DbSet<InboundReceipt> InboundReceipts => Set<InboundReceipt>();
-
     public DbSet<InboundReceiptLine> InboundReceiptLines => Set<InboundReceiptLine>();
+    public DbSet<OutboundIssue> OutboundIssues => Set<OutboundIssue>();
+    public DbSet<OutboundLine> OutboundLines => Set<OutboundLine>();
+    public DbSet<StockTransfer> StockTransfers => Set<StockTransfer>();
+    public DbSet<StockTransferLine> StockTransferLines => Set<StockTransferLine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

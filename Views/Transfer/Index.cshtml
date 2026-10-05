@@ -1,0 +1,341 @@
+@model StationeryWarehouse.Models.Transfer.TransferIndexViewModel
+
+@{
+    ViewData["Title"] = "Điều chuyển";
+}
+
+<div class="container-fluid py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-1">
+                <i class="bi bi-arrow-left-right"></i>
+                Điều chuyển
+            </h4>
+
+            <div class="text-muted small">
+                Quản lý điều chuyển hàng hóa giữa các Bin
+            </div>
+        </div>
+
+        @if (User.IsInRole("ADMIN")
+            || User.IsInRole("WAREHOUSE_MANAGER")
+            || User.IsInRole("WAREHOUSE_OPERATOR"))
+        {
+            <a asp-action="Create"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Tạo phiếu
+            </a>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get">
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            Tìm kiếm
+                        </label>
+
+                        <input asp-for="Filter.Keyword"
+                               class="form-control"
+                               placeholder="Số phiếu, ghi chú..." />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Trạng thái
+                        </label>
+
+                        <select asp-for="Filter.Status"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            <option value="DRAFT">
+                                Nháp
+                            </option>
+
+                            <option value="DONE">
+                                Hoàn tất
+                            </option>
+
+                            <option value="CANCELLED">
+                                Đã hủy
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Kho nguồn
+                        </label>
+
+                        <select asp-for="Filter.SourceWarehouseId"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            @foreach (var warehouse in Model.Warehouses)
+                            {
+                                <option value="@warehouse.Id">
+                                    @warehouse.Code - @warehouse.Name
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Kho đích
+                        </label>
+
+                        <select asp-for="Filter.DestinationWarehouseId"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            @foreach (var warehouse in Model.Warehouses)
+                            {
+                                <option value="@warehouse.Id">
+                                    @warehouse.Code - @warehouse.Name
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="form-label">
+                            Từ ngày
+                        </label>
+
+                        <input asp-for="Filter.FromDate"
+                               type="date"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="form-label">
+                            Đến ngày
+                        </label>
+
+                        <input asp-for="Filter.ToDate"
+                               type="date"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+            <strong>
+                Danh sách phiếu điều chuyển
+            </strong>
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Số phiếu</th>
+                        <th>Kho nguồn</th>
+                        <th>Kho đích</th>
+                        <th>Ngày</th>
+                        <th>Số dòng</th>
+                        <th class="text-end">
+                            Tổng SL
+                        </th>
+                        <th>Trạng thái</th>
+                        <th>Người tạo</th>
+                        <th class="text-end">
+                            Thao tác
+                        </th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                @if (Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr>
+
+                            <td>
+                                <a asp-action="Detail"
+                                   asp-route-id="@item.Id"
+                                   class="fw-semibold text-decoration-none">
+                                    @item.TransferNo
+                                </a>
+                            </td>
+
+                            <td>
+                                @item.SourceWarehouseName
+                            </td>
+
+                            <td>
+                                @item.DestinationWarehouseName
+                            </td>
+
+                            <td>
+                                @item.TransferDate.ToString("dd/MM/yyyy")
+                            </td>
+
+                            <td>
+                                @item.LineCount
+                            </td>
+
+                            <td class="text-end">
+                                @item.TotalQuantity
+                            </td>
+
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case "DRAFT":
+                                        <span class="badge bg-secondary">
+                                            Nháp
+                                        </span>
+                                        break;
+
+                                    case "DONE":
+                                        <span class="badge bg-success">
+                                            Hoàn tất
+                                        </span>
+                                        break;
+
+                                    case "CANCELLED":
+                                        <span class="badge bg-danger">
+                                            Đã hủy
+                                        </span>
+                                        break;
+
+                                    default:
+                                        <span class="badge bg-secondary">
+                                            @item.Status
+                                        </span>
+                                        break;
+                                }
+                            </td>
+
+                            <td>
+                                @item.CreatorName
+                            </td>
+
+                            <td class="text-end">
+
+                                <a asp-action="Detail"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                @if (item.Status == "DRAFT"
+                                    &&
+                                    (
+                                        User.IsInRole("ADMIN")
+                                        ||
+                                        User.IsInRole("WAREHOUSE_MANAGER")
+                                        ||
+                                        User.IsInRole("WAREHOUSE_OPERATOR")
+                                    ))
+                                {
+                                    <a asp-action="Edit"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9"
+                            class="text-center text-muted py-5">
+                            Không có phiếu điều chuyển.
+                        </td>
+                    </tr>
+                }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        @if (Model.Filter.TotalItems > 0)
+        {
+            <div class="card-footer bg-white">
+
+                @await Html.PartialAsync(
+                    "_Pagination",
+                    new StationeryWarehouse.Models.Common.PaginationViewModel
+                    {
+                        Page = Model.Filter.Page,
+                        PageSize = Model.Filter.PageSize,
+                        TotalItems = Model.Filter.TotalItems
+                    })
+
+            </div>
+        }
+
+    </div>
+
+</div>
