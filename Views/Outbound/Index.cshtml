@@ -268,31 +268,31 @@
                                         @switch (item.Status)
                                         {
                                             case "DRAFT":
-                                                <span class="badge bg-secondary">
+                                                <span class="badge erp-status-badge erp-status-draft">
                                                     Nháp
                                                 </span>
                                                 break;
 
                                             case "PICKING":
-                                                <span class="badge bg-warning text-dark">
+                                                <span class="badge erp-status-badge erp-status-progress">
                                                     Đang lấy hàng
                                                 </span>
                                                 break;
 
                                             case "DONE":
-                                                <span class="badge bg-success">
+                                                <span class="badge erp-status-badge erp-status-done">
                                                     Hoàn tất
                                                 </span>
                                                 break;
 
                                             case "CANCELLED":
-                                                <span class="badge bg-danger">
+                                                <span class="badge erp-status-badge erp-status-cancelled">
                                                     Đã hủy
                                                 </span>
                                                 break;
 
                                             default:
-                                                <span class="badge bg-secondary">
+                                                <span class="badge erp-status-badge erp-status-draft">
                                                     @item.Status
                                                 </span>
                                                 break;
@@ -325,17 +325,9 @@
 
         </div>
 
-        @if (Model.Pagination != null && Model.Pagination.TotalItems > 0)
-        {
-            <div class="card-footer bg-white">
-
-                @await Html.PartialAsync(
-                    "_Pagination",
-                    Model.Pagination
-                )
-
-            </div>
-        }
+        <div class="card-footer bg-white">
+            @await Html.PartialAsync("_Pagination", Model.Pagination)
+        </div>
 
     </div>
 

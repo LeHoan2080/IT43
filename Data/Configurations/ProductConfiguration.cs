@@ -15,6 +15,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // =========================
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Id)
+            .HasColumnName("id");
+
         // =========================
         // Product Code
         // =========================
@@ -31,11 +34,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // =========================
         builder.Property(x => x.Barcode)
             .HasColumnName("barcode")
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.HasIndex(x => x.Barcode)
-            .IsUnique()
-            .HasFilter("[barcode] IS NOT NULL");
+            .IsUnique();
 
         // =========================
         // Product Name
@@ -66,7 +69,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // =========================
         builder.Property(x => x.MinStock)
             .HasColumnName("min_stock")
-            .HasPrecision(18, 2)
             .IsRequired();
 
         // =========================
@@ -85,12 +87,19 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasColumnName("author")
             .HasMaxLength(150);
 
-        builder.Property(x => x.Publisher)
-            .HasColumnName("publisher")
-            .HasMaxLength(150);
+        // =========================
+        // Publisher
+        // =========================
+        builder.Property(x => x.PublisherId)
+            .HasColumnName("publisher_id");
+
+        builder.HasOne(x => x.Publisher)
+            .WithMany(x => x.Products)
+            .HasForeignKey(x => x.PublisherId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(x => x.PublishYear)
-            .HasColumnName("publish_year");
+            .HasColumnName("publication_year");
 
         builder.Property(x => x.Category)
             .HasColumnName("category")
@@ -117,7 +126,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // =========================
 
         builder.Property(x => x.Notes)
-            .HasColumnName("notes")
+            .HasColumnName("note")
             .HasMaxLength(1000);
 
         // =========================

@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<AppUser> AppUsers => Set<AppUser>();
     public DbSet<AppRole> AppRoles => Set<AppRole>();
 
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
     public DbSet<Location> Locations => Set<Location>();
@@ -24,6 +25,8 @@ public class AppDbContext : DbContext
     public DbSet<OutboundLine> OutboundLines => Set<OutboundLine>();
     public DbSet<StockTransfer> StockTransfers => Set<StockTransfer>();
     public DbSet<StockTransferLine> StockTransferLines => Set<StockTransferLine>();
+    public DbSet<Stocktake> Stocktakes => Set<Stocktake>();
+    public DbSet<StocktakeLine> StocktakeLines => Set<StocktakeLine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

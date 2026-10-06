@@ -1,3 +1,20 @@
+@{
+    var displayName = User.FindFirst("FullName")?.Value;
+
+    if (string.IsNullOrWhiteSpace(displayName))
+    {
+        displayName = User.Identity?.Name;
+    }
+
+    if (string.IsNullOrWhiteSpace(displayName))
+    {
+        displayName = "Tài khoản";
+    }
+
+    var avatarInitial =
+        displayName[..1].ToUpperInvariant();
+}
+
 <header class="erp-topbar">
 
     <!-- LEFT -->
@@ -6,7 +23,10 @@
         <button type="button"
                 class="erp-sidebar-toggle"
                 id="sidebarToggle"
-                title="Thu gọn menu">
+                title="Mở hoặc thu gọn menu"
+                aria-label="Mở hoặc thu gọn menu"
+                aria-controls="erpSidebar"
+                aria-expanded="false">
 
             ☰
 
@@ -40,7 +60,8 @@
         <!-- Notification -->
         <button class="erp-topbar-button"
                 type="button"
-                title="Thông báo">
+                title="Thông báo"
+                aria-label="Thông báo">
 
             🔔
 
@@ -52,14 +73,15 @@
 
             <button class="erp-user-button dropdown-toggle"
                     type="button"
-                    data-bs-toggle="dropdown">
+                    data-bs-toggle="dropdown"
+                    aria-label="Menu tài khoản">
 
                 <span class="erp-avatar">
-                    H
+                    @avatarInitial
                 </span>
 
                 <span class="erp-user-name">
-                    Hoàn
+                    @displayName
                 </span>
 
             </button>
@@ -67,15 +89,16 @@
 
             <ul class="dropdown-menu dropdown-menu-end">
 
-                <li>
-                    <a class="dropdown-item"
-                       asp-controller="Account"
-                       asp-action="Profile">
-
-                        Tài khoản
-
-                    </a>
-                </li>
+                @if (User.IsInRole("ADMIN"))
+                {
+                    <li>
+                        <a class="dropdown-item"
+                           asp-controller="Settings"
+                           asp-action="Index">
+                            Cài đặt
+                        </a>
+                    </li>
+                }
 
                 <li>
                     <hr class="dropdown-divider" />

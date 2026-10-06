@@ -23,25 +23,23 @@ public class WarehouseController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(
         long? warehouseId,
-        int page = 1)
+        int warehousePage = 1,
+        int locationPage = 1)
     {
-        const int pageSize = 20;
-
-        if (page < 1)
-        {
-            page = 1;
-        }
-
-        var warehouses =
-            await _warehouseService.GetWarehousesAsync();
+        var model =
+            await _warehouseService.GetWarehousesAsync(warehousePage);
 
         var locationResult =
             await _warehouseService.GetLocationsAsync(
                 warehouseId,
-                page,
-                pageSize);
+                locationPage);
 
-        locationResult.Warehouses = warehouses;
+        locationResult.Warehouses =
+            model.Warehouses;
+        locationResult.WarehouseOptions =
+            await _warehouseService.GetActiveWarehousesAsync();
+        locationResult.WarehousePagination =
+            model.WarehousePagination;
 
         ViewData["Title"] = "Kho & vị trí";
 

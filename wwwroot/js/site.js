@@ -1,15 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
-
-    if (sidebarToggle && sidebar) {
-
-        sidebarToggle.addEventListener("click", function () {
-
-            sidebar.classList.toggle("collapsed");
-
-        });
-
-    }
-
+document.addEventListener("DOMContentLoaded", function () {
     /* =====================================================
        SIDEBAR
        ===================================================== */
@@ -22,14 +11,55 @@
 
 
     if (sidebarToggle && sidebar) {
+        const isMobile = window.matchMedia("(max-width: 767.98px)").matches;
+        sidebarToggle.setAttribute(
+            "aria-expanded",
+            String(isMobile
+                ? sidebar.classList.contains("collapsed")
+                : !sidebar.classList.contains("collapsed")));
 
         sidebarToggle.addEventListener("click", function () {
 
             sidebar.classList.toggle("collapsed");
+            const isOpen = sidebar.classList.contains("collapsed");
+            const isMobile = window.matchMedia("(max-width: 767.98px)").matches;
+
+            document.body.classList.toggle(
+                "erp-sidebar-open",
+                isMobile && isOpen);
+            sidebarToggle.setAttribute(
+                "aria-expanded",
+                String(isMobile ? isOpen : !isOpen));
 
         });
 
     }
+
+    document.addEventListener("click", function (event) {
+        if (!sidebar || !sidebarToggle ||
+            !document.body.classList.contains("erp-sidebar-open")) {
+            return;
+        }
+
+        if (!sidebar.contains(event.target) &&
+            !sidebarToggle.contains(event.target)) {
+            sidebar.classList.remove("collapsed");
+            document.body.classList.remove("erp-sidebar-open");
+            sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    window.addEventListener("resize", function () {
+        const isMobile = window.matchMedia("(max-width: 767.98px)").matches;
+        if (!isMobile) {
+            document.body.classList.remove("erp-sidebar-open");
+        }
+
+        const isExpanded = sidebar?.classList.contains("collapsed")
+            ? isMobile
+            : !isMobile;
+        sidebarToggle?.setAttribute("aria-expanded", String(isExpanded));
+    });
 
 
     /* =====================================================

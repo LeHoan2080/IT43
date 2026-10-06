@@ -1,0 +1,134 @@
+@model StationeryWarehouse.Models.Settings.UserEditViewModel
+
+<div class="row g-3">
+
+    <div class="col-md-6">
+
+        <label
+            asp-for="Username"
+            class="form-label">
+        </label>
+
+        <input
+            asp-for="Username"
+            class="form-control"
+            autocomplete="off" />
+
+        <span
+            asp-validation-for="Username"
+            class="text-danger">
+        </span>
+
+    </div>
+
+
+    <div class="col-md-6">
+
+        <label
+            asp-for="FullName"
+            class="form-label">
+        </label>
+
+        <input
+            asp-for="FullName"
+            class="form-control" />
+
+        <span
+            asp-validation-for="FullName"
+            class="text-danger">
+        </span>
+
+    </div>
+
+
+    <div class="col-md-6">
+
+        <label
+            asp-for="RoleId"
+            class="form-label">
+            Vai trò
+        </label>
+
+        <select
+            asp-for="RoleId"
+            class="form-select">
+
+            <option value="">
+                -- Chọn vai trò --
+            </option>
+
+            @foreach (var role in Model.Roles)
+            {
+                <option value="@role.Id">
+
+                    @role.Code -
+                    @role.Name
+
+                </option>
+            }
+
+        </select>
+
+        <span
+            asp-validation-for="RoleId"
+            class="text-danger">
+        </span>
+
+    </div>
+
+
+    <div class="col-md-6">
+
+        <label class="form-label">
+            Trạng thái
+        </label>
+
+        <div class="form-check form-switch mt-2">
+
+            <input
+                asp-for="IsActive"
+                class="form-check-input"
+                type="checkbox" />
+
+            <label
+                asp-for="IsActive"
+                class="form-check-label">
+
+                Tài khoản đang hoạt động
+
+            </label>
+
+        </div>
+
+    </div>
+
+
+    @if (Model.Id == 0)
+    {
+        <div class="col-md-6">
+
+            <label
+                class="form-label"
+                for="password">
+
+                Mật khẩu
+
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                minlength="6"
+                autocomplete="new-password"
+                required />
+
+            <div class="form-text">
+                Mật khẩu tối thiểu 6 ký tự.
+            </div>
+
+        </div>
+    }
+
+</div>

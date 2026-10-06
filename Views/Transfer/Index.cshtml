@@ -245,25 +245,25 @@
                                 @switch (item.Status)
                                 {
                                     case "DRAFT":
-                                        <span class="badge bg-secondary">
+                                        <span class="badge erp-status-badge erp-status-draft">
                                             Nháp
                                         </span>
                                         break;
 
                                     case "DONE":
-                                        <span class="badge bg-success">
+                                        <span class="badge erp-status-badge erp-status-done">
                                             Hoàn tất
                                         </span>
                                         break;
 
                                     case "CANCELLED":
-                                        <span class="badge bg-danger">
+                                        <span class="badge erp-status-badge erp-status-cancelled">
                                             Đã hủy
                                         </span>
                                         break;
 
                                     default:
-                                        <span class="badge bg-secondary">
+                                        <span class="badge erp-status-badge erp-status-draft">
                                             @item.Status
                                         </span>
                                         break;
@@ -320,21 +320,9 @@
 
         </div>
 
-        @if (Model.Filter.TotalItems > 0)
-        {
-            <div class="card-footer bg-white">
-
-                @await Html.PartialAsync(
-                    "_Pagination",
-                    new StationeryWarehouse.Models.Common.PaginationViewModel
-                    {
-                        Page = Model.Filter.Page,
-                        PageSize = Model.Filter.PageSize,
-                        TotalItems = Model.Filter.TotalItems
-                    })
-
-            </div>
-        }
+        <div class="card-footer bg-white">
+            @await Html.PartialAsync("_Pagination", Model.Pagination)
+        </div>
 
     </div>
 

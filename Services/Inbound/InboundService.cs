@@ -3,6 +3,7 @@ using StationeryWarehouse.Data;
 using StationeryWarehouse.Entities;
 using StationeryWarehouse.Models.Common;
 using StationeryWarehouse.Models.Inbound;
+using ProductEntity = StationeryWarehouse.Entities.Product;
 
 namespace StationeryWarehouse.Services.Inbound;
 
@@ -24,7 +25,7 @@ public class InboundService : IInboundService
         GetInboundReceiptsAsync(
             InboundFilterViewModel filter)
     {
-        const int pageSize = 20;
+        const int pageSize = PaginationViewModel.DefaultPageSize;
 
         if (filter.Page < 1)
         {
@@ -117,6 +118,10 @@ public class InboundService : IInboundService
             filter.Page > totalPages)
         {
             filter.Page = totalPages;
+        }
+        else if (totalPages == 0)
+        {
+            filter.Page = 1;
         }
 
 
@@ -1180,7 +1185,7 @@ public class InboundService : IInboundService
     // PRIVATE - ACTIVE PRODUCT
     // =========================================================
 
-    private async Task<Product?>
+    private async Task<ProductEntity?>
         GetActiveProductAsync(
             long productId)
     {

@@ -1,0 +1,326 @@
+@model StationeryWarehouse.Models.Stocktake.StocktakeIndexViewModel
+
+@{
+    ViewData["Title"] = "Kiểm kê & điều chỉnh";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-1">Kiểm kê & điều chỉnh</h4>
+            <div class="text-muted small">
+                Quản lý phiếu kiểm kê và điều chỉnh tồn kho
+            </div>
+        </div>
+
+        @if (User.IsInRole("ADMIN") ||
+             User.IsInRole("WAREHOUSE_MANAGER") ||
+             User.IsInRole("WAREHOUSE_OPERATOR"))
+        {
+            <a asp-action="Create"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Tạo phiếu kiểm kê
+            </a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- FILTER -->
+    <div class="card mb-3">
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get"
+                  class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Từ khóa
+                    </label>
+
+                    <input asp-for="Filter.Keyword"
+                           class="form-control"
+                           placeholder="Số phiếu, ghi chú..." />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Trạng thái
+                    </label>
+
+                    <select asp-for="Filter.Status"
+                            class="form-select">
+
+                        <option value="">
+                            Tất cả
+                        </option>
+
+                        <option value="DRAFT">
+                            Nháp
+                        </option>
+
+                        <option value="COUNTING">
+                            Đang kiểm kê
+                        </option>
+
+                        <option value="DONE">
+                            Hoàn tất
+                        </option>
+
+                        <option value="CANCELLED">
+                            Đã hủy
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Kho
+                    </label>
+
+                    <select asp-for="Filter.WarehouseId"
+                            class="form-select">
+
+                        <option value="">
+                            Tất cả
+                        </option>
+
+                        @foreach (var warehouse in Model.Warehouses)
+                        {
+                            <option value="@warehouse.Id">
+                                @warehouse.Code - @warehouse.Name
+                            </option>
+                        }
+
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Từ ngày
+                    </label>
+
+                    <input asp-for="Filter.FromDate"
+                           type="date"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Đến ngày
+                    </label>
+
+                    <input asp-for="Filter.ToDate"
+                           type="date"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-12 d-flex justify-content-end">
+                    <button type="submit"
+                            class="btn btn-primary"
+                            aria-label="Tìm kiếm"
+                            title="Tìm kiếm">
+                        <i class="bi bi-search"></i>
+                        <span>Tìm kiếm</span>
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- LIST -->
+    <div class="card">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Số phiếu</th>
+                            <th>Kho</th>
+                            <th>Ngày kiểm kê</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Số dòng</th>
+                            <th class="text-end">SL hệ thống</th>
+                            <th class="text-end">SL thực tế</th>
+                            <th class="text-end">Chênh lệch</th>
+                            <th>Người tạo</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!Model.Items.Any())
+                        {
+                            <tr>
+                                <td colspan="11"
+                                    class="text-center text-muted py-4">
+                                    Không có dữ liệu.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            var index = Model.Filter.FirstItemIndex;
+
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @index
+                                    </td>
+
+                                    <td>
+                                        <a asp-action="Detail"
+                                           asp-route-id="@item.Id"
+                                           class="fw-semibold text-decoration-none">
+                                            @item.StocktakeNo
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        @item.WarehouseName
+                                    </td>
+
+                                    <td>
+                                        @item.StocktakeDate.ToString("dd/MM/yyyy")
+                                    </td>
+
+                                    <td>
+                                        @switch (item.Status)
+                                        {
+                                            case "DRAFT":
+                                                <span class="badge erp-status-badge erp-status-draft">
+                                                    Nháp
+                                                </span>
+                                                break;
+
+                                            case "COUNTING":
+                                                <span class="badge erp-status-badge erp-status-progress">
+                                                    Đang kiểm kê
+                                                </span>
+                                                break;
+
+                                            case "DONE":
+                                                <span class="badge erp-status-badge erp-status-done">
+                                                    Hoàn tất
+                                                </span>
+                                                break;
+
+                                            case "CANCELLED":
+                                                <span class="badge erp-status-badge erp-status-cancelled">
+                                                    Đã hủy
+                                                </span>
+                                                break;
+
+                                            default:
+                                                <span class="badge erp-status-badge erp-status-draft">
+                                                    @item.Status
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.LineCount
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.TotalSystemQty.ToString("N0")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.TotalCountedQty.ToString("N0")
+                                    </td>
+
+                                    <td class="text-end fw-semibold
+                                        @(item.TotalDifferenceQty > 0
+                                            ? "text-success"
+                                            : item.TotalDifferenceQty < 0
+                                                ? "text-danger"
+                                                : "text-muted")">
+
+                                        @(item.TotalDifferenceQty > 0 ? "+" : "")
+                                        @item.TotalDifferenceQty.ToString("N0")
+
+                                    </td>
+
+                                    <td>
+                                        @item.CreatorName
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <a asp-action="Detail"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Xem
+                                        </a>
+
+                                        @if (item.Status == "DRAFT" &&
+                                             (User.IsInRole("ADMIN") ||
+                                              User.IsInRole("WAREHOUSE_MANAGER") ||
+                                              User.IsInRole("WAREHOUSE_OPERATOR")))
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                Sửa
+                                            </a>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                index++;
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer bg-white">
+            @await Html.PartialAsync("_Pagination", Model.Pagination)
+        </div>
+
+    </div>
+
+</div>

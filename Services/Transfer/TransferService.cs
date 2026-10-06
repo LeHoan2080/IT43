@@ -4,6 +4,7 @@ using StationeryWarehouse.Entities;
 using StationeryWarehouse.Models.Transfer;
 
 // Tránh xung đột giữa namespace Warehouse và Entity Warehouse
+using ProductEntity = StationeryWarehouse.Entities.Product;
 using WarehouseEntity = StationeryWarehouse.Entities.Warehouse;
 
 namespace StationeryWarehouse.Services.Transfer;
@@ -31,10 +32,7 @@ public class TransferService : ITransferService
             filter.Page = 1;
         }
 
-        if (filter.PageSize <= 0)
-        {
-            filter.PageSize = 20;
-        }
+        filter.PageSize = StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
 
         var query =
             _context.StockTransfers
@@ -104,6 +102,16 @@ public class TransferService : ITransferService
         filter.TotalItems =
             await query.CountAsync();
 
+        var totalPages = (int)Math.Ceiling(
+            filter.TotalItems / (double)filter.PageSize);
+        if (totalPages == 0)
+        {
+            filter.Page = 1;
+        }
+        else if (filter.Page > totalPages)
+        {
+            filter.Page = totalPages;
+        }
 
         var items =
             await query
@@ -158,6 +166,12 @@ public class TransferService : ITransferService
         {
             Items = items,
             Filter = filter,
+            Pagination = new StationeryWarehouse.Models.Common.PaginationViewModel
+            {
+                Page = filter.Page,
+                PageSize = filter.PageSize,
+                TotalItems = filter.TotalItems
+            },
             Warehouses = warehouses
         };
     }
@@ -1182,7 +1196,7 @@ public class TransferService : ITransferService
     }
 
 
-    private async Task<Product?>
+    private async Task<ProductEntity?>
         GetActiveProductAsync(
             long id)
     {

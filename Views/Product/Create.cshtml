@@ -1,0 +1,53 @@
+@model StationeryWarehouse.Models.Product.ProductFormViewModel
+
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+
+        <h3 class="mb-1">
+            Thêm sản phẩm
+        </h3>
+
+        <div class="text-muted">
+            Danh mục / Sản phẩm / Thêm mới
+        </div>
+
+    </div>
+
+
+    <form asp-action="Create"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <partial name="_ProductForm"
+                 model="Model" />
+
+
+        <div class="d-flex justify-content-end gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                Hủy
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Lưu sản phẩm
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

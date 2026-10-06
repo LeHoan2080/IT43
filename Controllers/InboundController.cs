@@ -25,7 +25,8 @@ public class InboundController : Controller
     public async Task<IActionResult> Index(
         InboundFilterViewModel filter)
     {
-        filter.PageSize = 20;
+        filter.PageSize =
+            StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
 
         if (filter.Page < 1)
         {

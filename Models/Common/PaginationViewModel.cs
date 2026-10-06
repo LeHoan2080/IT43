@@ -2,11 +2,19 @@ namespace StationeryWarehouse.Models.Common;
 
 public class PaginationViewModel
 {
+    public const int DefaultPageSize = 10;
+
     public int Page { get; set; } = 1;
 
-    public int PageSize { get; set; } = 20;
+    public int PageSize { get; set; } = DefaultPageSize;
 
     public int TotalItems { get; set; }
+
+    public string PageParameterName { get; set; } = string.Empty;
+
+    public string? AdditionalQueryKey { get; set; }
+
+    public string? AdditionalQueryValue { get; set; }
 
     public int TotalPages =>
         PageSize <= 0

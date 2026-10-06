@@ -1,0 +1,369 @@
+@model StationeryWarehouse.Models.Stocktake.StocktakeFormViewModel
+
+@{
+    var isEdit = Model.Id > 0;
+    var isDraft = Model.Status == "DRAFT";
+}
+
+<div class="card mb-3">
+
+    <div class="card-header">
+        <strong>Thông tin phiếu</strong>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            @if (isEdit)
+            {
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Số phiếu
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           value="@Model.StocktakeNo"
+                           readonly />
+
+                </div>
+            }
+
+            <div class="col-md-3">
+
+                <label asp-for="WarehouseId"
+                       class="form-label">
+                    Kho <span class="text-danger">*</span>
+                </label>
+
+                <select asp-for="WarehouseId"
+                        class="form-select"
+                        id="warehouseId"
+                        disabled="@(isEdit && !isDraft)">
+
+                    <option value="">
+                        -- Chọn kho --
+                    </option>
+
+                    @foreach (var warehouse in Model.Warehouses)
+                    {
+                        <option value="@warehouse.Id">
+                            @warehouse.Code - @warehouse.Name
+                        </option>
+                    }
+
+                </select>
+
+                @if (isEdit && !isDraft)
+                {
+                    <input type="hidden"
+                           asp-for="WarehouseId" />
+                }
+
+            </div>
+
+            <div class="col-md-3">
+
+                <label asp-for="StocktakeDate"
+                       class="form-label">
+                    Ngày kiểm kê
+                    <span class="text-danger">*</span>
+                </label>
+
+                <input asp-for="StocktakeDate"
+                       type="date"
+                       class="form-control"
+                       readonly="@(!isDraft)" />
+
+            </div>
+
+            <div class="col-md-3">
+
+                <label class="form-label">
+                    Trạng thái
+                </label>
+
+                <div class="pt-2">
+
+                    @switch (Model.Status)
+                    {
+                        case "DRAFT":
+                            <span class="badge bg-secondary">
+                                Nháp
+                            </span>
+                            break;
+
+                        case "COUNTING":
+                            <span class="badge bg-warning text-dark">
+                                Đang kiểm kê
+                            </span>
+                            break;
+
+                        case "DONE":
+                            <span class="badge bg-success">
+                                Hoàn tất
+                            </span>
+                            break;
+
+                        case "CANCELLED":
+                            <span class="badge bg-danger">
+                                Đã hủy
+                            </span>
+                            break;
+                    }
+
+                </div>
+
+            </div>
+
+            <div class="col-12">
+
+                <label asp-for="Note"
+                       class="form-label">
+                    Ghi chú
+                </label>
+
+                <textarea asp-for="Note"
+                          class="form-control"
+                          rows="2"
+                          readonly="@(!isDraft)"
+                          placeholder="Nhập ghi chú nếu có..."></textarea>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <strong>
+            Chi tiết kiểm kê
+        </strong>
+
+        @if (isDraft)
+        {
+            <button type="button"
+                    class="btn btn-sm btn-primary"
+                    id="btnAddLine">
+
+                <i class="bi bi-plus-lg"></i>
+                Thêm sản phẩm
+
+            </button>
+        }
+
+    </div>
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered align-middle mb-0"
+                   id="stocktakeLinesTable">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th style="min-width: 250px;">
+                            Sản phẩm
+                        </th>
+
+                        <th style="min-width: 220px;">
+                            Bin
+                        </th>
+
+                        <th style="width: 120px;"
+                            class="text-end">
+                            SL hệ thống
+                        </th>
+
+                        <th style="width: 140px;"
+                            class="text-end">
+                            SL thực tế
+                        </th>
+
+                        <th style="width: 120px;"
+                            class="text-end">
+                            Chênh lệch
+                        </th>
+
+                        <th style="min-width: 180px;">
+                            Ghi chú
+                        </th>
+
+                        @if (isDraft)
+                        {
+                            <th style="width: 70px;"></th>
+                        }
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="stocktakeLines">
+
+                    @if (Model.Lines != null &&
+                         Model.Lines.Count > 0)
+                    {
+                        for (var i = 0;
+                             i < Model.Lines.Count;
+                             i++)
+                        {
+                            var line = Model.Lines[i];
+
+                            <tr class="stocktake-line">
+
+                                <input type="hidden"
+                                       name="Lines[@i].Id"
+                                       value="@line.Id" />
+
+                                <input type="hidden"
+                                       name="Lines[@i].ProductId"
+                                       class="product-id"
+                                       value="@line.ProductId" />
+
+                                <input type="hidden"
+                                       name="Lines[@i].LocationId"
+                                       class="location-id"
+                                       value="@line.LocationId" />
+
+                                <td>
+
+                                    <input type="text"
+                                           class="form-control product-search"
+                                           value="@line.ProductDisplay"
+                                           data-product-id="@line.ProductId"
+                                           placeholder="Barcode / mã / tên / ISBN..."
+                                           autocomplete="off"
+                                           readonly="@(!isDraft)" />
+
+                                    <div class="search-results product-results"></div>
+
+                                    <div class="small text-muted mt-1">
+                                        Barcode:
+                                        <span class="product-barcode-text">
+                                            @(string.IsNullOrWhiteSpace(line.ProductBarcode)
+                                                ? "-"
+                                                : line.ProductBarcode)
+                                        </span>
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <input type="text"
+                                           class="form-control location-search"
+                                           value="@line.LocationDisplay"
+                                           data-location-id="@line.LocationId"
+                                           placeholder="Barcode / mã Bin..."
+                                           autocomplete="off"
+                                           readonly="@(!isDraft)" />
+
+                                    <div class="search-results location-results"></div>
+
+                                    <div class="small text-muted mt-1">
+                                        Barcode:
+                                        <span class="location-barcode-text">
+                                            @(string.IsNullOrWhiteSpace(line.LocationBarcode)
+                                                ? "-"
+                                                : line.LocationBarcode)
+                                        </span>
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           class="form-control text-end system-qty"
+                                           name="Lines[@i].SystemQty"
+                                           value="@line.SystemQty"
+                                           readonly />
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           class="form-control text-end counted-qty"
+                                           name="Lines[@i].CountedQty"
+                                           value="@line.CountedQty"
+                                           min="0"
+                                           @(isDraft ? "" : "readonly") />
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           class="form-control text-end difference-qty"
+                                           value="@line.DifferenceQty"
+                                           readonly />
+
+                                </td>
+
+                                <td>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           name="Lines[@i].Note"
+                                           value="@line.Note"
+                                           maxlength="500"
+                                           readonly="@(!isDraft)" />
+
+                                </td>
+
+                                @if (isDraft)
+                                {
+                                    <td class="text-center">
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger btn-remove-line">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </td>
+                                }
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div id="emptyLinesMessage"
+             class="text-center text-muted py-4
+                    @(Model.Lines != null && Model.Lines.Any()
+                        ? "d-none"
+                        : "")">
+
+            Chưa có sản phẩm kiểm kê.
+
+            @if (isDraft)
+            {
+                <div class="mt-2">
+                    Nhấn <strong>Thêm sản phẩm</strong> để bắt đầu.
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

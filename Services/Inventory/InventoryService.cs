@@ -27,7 +27,7 @@ public class InventoryService : IInventoryService
         }
 
         // Luôn cố định 20 dòng / trang
-        filter.PageSize = 20;
+        filter.PageSize = StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
 
         // --------------------------------------------------
         // 2. Query Product
@@ -72,10 +72,7 @@ public class InventoryService : IInventoryService
         }
 
         // --------------------------------------------------
-        // 5. Lọc nhà cung cấp / NXB
-        // --------------------------------------------------
-        // Entity Product hiện tại của project dùng
-        // trường Publisher dạng string.
+        // 5. Lọc nhà xuất bản
         // --------------------------------------------------
 
         if (!string.IsNullOrWhiteSpace(
@@ -86,7 +83,7 @@ public class InventoryService : IInventoryService
 
             query = query.Where(x =>
                 x.Publisher != null &&
-                x.Publisher.Contains(supplier));
+                x.Publisher.Name.Contains(supplier));
         }
 
         // --------------------------------------------------
@@ -130,49 +127,23 @@ public class InventoryService : IInventoryService
         }
 
         // --------------------------------------------------
-        // 8. Lấy danh sách ProductId sau khi filter
-        // --------------------------------------------------
-
-        var filteredProducts =
-            query.Select(x => x.Id);
-
-        // --------------------------------------------------
-        // 9. Tổng tồn theo Product
-        // --------------------------------------------------
-
-        var stockQuery =
-            _context.InventoryBalances
-                .AsNoTracking()
-                .Where(x =>
-                    filteredProducts.Contains(
-                        x.ProductId))
-                .GroupBy(x => x.ProductId)
-                .Select(g => new
-                {
-                    ProductId = g.Key,
-
-                    TotalQuantity =
-                        g.Sum(x => x.Quantity)
-                });
-
-        // --------------------------------------------------
-        // 10. Low Stock
+        // 8. Low Stock
         // --------------------------------------------------
 
         if (filter.LowStockOnly)
         {
             query = query.Where(product =>
-                _context.InventoryBalances
+                (_context.InventoryBalances
                     .Where(balance =>
                         balance.ProductId ==
                             product.Id)
                     .Sum(balance =>
-                        (int?)balance.Quantity) <
-                product.MinStock);
+                        (int?)balance.Quantity) ?? 0)
+                < product.MinStock);
         }
 
         // --------------------------------------------------
-        // 11. Đếm tổng số sản phẩm sau filter
+        // 9. Đếm tổng số sản phẩm sau filter
         // --------------------------------------------------
 
         var totalItems =
@@ -181,18 +152,21 @@ public class InventoryService : IInventoryService
         filter.TotalItems = totalItems;
 
         // --------------------------------------------------
-        // 12. Nếu page hiện tại vượt quá tổng số trang
+        // 10. Nếu page hiện tại vượt quá tổng số trang
         // --------------------------------------------------
 
-        if (filter.TotalPages > 0 &&
-            filter.Page > filter.TotalPages)
+        if (filter.TotalPages == 0)
+        {
+            filter.Page = 1;
+        }
+        else if (filter.Page > filter.TotalPages)
         {
             filter.Page =
                 filter.TotalPages;
         }
 
         // --------------------------------------------------
-        // 13. Query dữ liệu trang hiện tại
+        // 11. Query dữ liệu trang hiện tại
         // --------------------------------------------------
 
         var items =
@@ -252,14 +226,27 @@ public class InventoryService : IInventoryService
                 })
                 .ToListAsync();
 
+        var warehouses =
+            await _context.Warehouses
+                .AsNoTracking()
+                .OrderBy(x => x.Code)
+                .Select(x => new InventoryWarehouseOptionViewModel
+                {
+                    Id = x.Id,
+                    Code = x.Code,
+                    Name = x.Name
+                })
+                .ToListAsync();
+
         // --------------------------------------------------
-        // 14. Trả ViewModel
+        // 12. Trả ViewModel
         // --------------------------------------------------
 
         return new InventoryIndexViewModel
         {
             Items = items,
-            Filter = filter
+            Filter = filter,
+            Warehouses = warehouses
         };
     }
 
@@ -374,7 +361,7 @@ public class InventoryService : IInventoryService
                 product.Author,
 
             Publisher =
-                product.Publisher,
+                product.Publisher?.Name,
 
             PublishYear =
                 product.PublishYear,

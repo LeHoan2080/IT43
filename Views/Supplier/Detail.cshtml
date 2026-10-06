@@ -1,0 +1,399 @@
+@model StationeryWarehouse.Models.Supplier.SupplierDetailViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết nhà cung cấp / NXB";
+}
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+                @Model.Name
+            </h3>
+
+            <div class="text-muted">
+                Danh mục / Nhà cung cấp / NXB / Chi tiết
+            </div>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                Quay lại
+
+            </a>
+
+            @if (User.IsInRole("ADMIN") ||
+                 User.IsInRole("WAREHOUSE_MANAGER"))
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-primary">
+
+                    Sửa
+
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ALERT -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+
+    <!-- INFORMATION -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+
+            <strong>
+                Thông tin
+            </strong>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Mã
+                    </div>
+
+                    <strong>
+                        @Model.Code
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Loại
+                    </div>
+
+                    @switch (Model.Type)
+                    {
+                        case "PUBLISHER":
+
+                            <span class="badge bg-primary">
+                                Nhà xuất bản
+                            </span>
+
+                            break;
+
+                        case "SUPPLIER":
+
+                            <span class="badge bg-info text-dark">
+                                Nhà cung cấp
+                            </span>
+
+                            break;
+
+                        case "BOTH":
+
+                            <span class="badge bg-success">
+                                Cả hai
+                            </span>
+
+                            break;
+
+                        default:
+
+                            <span class="badge bg-secondary">
+                                @Model.Type
+                            </span>
+
+                            break;
+                    }
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Trạng thái
+                    </div>
+
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">
+                            Đang hoạt động
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">
+                            Ngừng sử dụng
+                        </span>
+                    }
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Người liên hệ
+                    </div>
+
+                    @(Model.ContactPerson ?? "-")
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Điện thoại
+                    </div>
+
+                    @(Model.Phone ?? "-")
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Email
+                    </div>
+
+                    @(Model.Email ?? "-")
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Địa chỉ
+                    </div>
+
+                    @(Model.Address ?? "-")
+
+                </div>
+
+
+                <div class="col-md-12">
+
+                    <div class="text-muted small">
+                        Ghi chú
+                    </div>
+
+                    @(Model.Notes ?? "-")
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRODUCTS -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+
+            <strong>
+                Sản phẩm
+            </strong>
+
+            <span class="badge bg-secondary ms-2">
+                @Model.ProductCount
+            </span>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>Mã</th>
+
+                            <th>Barcode</th>
+
+                            <th>Tên sản phẩm</th>
+
+                            <th>Loại</th>
+
+                            <th>Trạng thái</th>
+
+                            <th class="text-end">
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    @if (Model.Products.Count == 0)
+                    {
+                        <tr>
+
+                            <td colspan="6"
+                                class="text-center text-muted py-4">
+
+                                Chưa có sản phẩm.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var product in Model.Products)
+                        {
+                            <tr>
+
+                                <td>
+                                    @product.ProductCode
+                                </td>
+
+                                <td>
+                                    @product.Barcode
+                                </td>
+
+                                <td>
+                                    @product.Name
+                                </td>
+
+                                <td>
+                                    @product.ProductType
+                                </td>
+
+                                <td>
+
+                                    @if (product.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Ngừng sử dụng
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <a asp-controller="Product"
+                                       asp-action="Detail"
+                                       asp-route-id="@product.Id"
+                                       class="btn btn-sm btn-outline-primary">
+
+                                        Xem
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ACTION -->
+    @if (User.IsInRole("ADMIN") ||
+         User.IsInRole("WAREHOUSE_MANAGER"))
+    {
+        <div class="d-flex justify-content-end">
+
+            @if (Model.IsActive)
+            {
+                <form asp-action="Deactivate"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-outline-danger"
+                            onclick="return confirm('Bạn có chắc muốn ngừng sử dụng nhà cung cấp/NXB này?');">
+
+                        Ngừng sử dụng
+
+                    </button>
+
+                </form>
+            }
+            else
+            {
+                <form asp-action="Activate"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        Kích hoạt
+
+                    </button>
+
+                </form>
+            }
+
+        </div>
+    }
+
+</div>

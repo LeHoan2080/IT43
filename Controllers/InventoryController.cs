@@ -20,8 +20,8 @@ public class InventoryController : Controller
     public async Task<IActionResult> Index(
         InventoryFilterViewModel filter)
     {
-        // Chỉ cho phép PageSize = 20
-        filter.PageSize = 20;
+        filter.PageSize =
+            StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
 
         if (filter.Page < 1)
         {

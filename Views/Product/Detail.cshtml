@@ -1,0 +1,510 @@
+@model StationeryWarehouse.Models.Product.ProductDetailViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+                @Model.Name
+            </h3>
+
+            <div class="text-muted">
+                Danh mục / Sản phẩm / Chi tiết
+            </div>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                Quay lại
+            </a>
+
+
+            @if (User.IsInRole("ADMIN") ||
+                 User.IsInRole("WAREHOUSE_MANAGER"))
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-primary">
+                    Sửa
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div class="mb-4">
+
+        @if (Model.IsActive)
+        {
+            <span class="badge bg-success">
+                Đang hoạt động
+            </span>
+        }
+        else
+        {
+            <span class="badge bg-secondary">
+                Ngừng sử dụng
+            </span>
+        }
+
+
+        @if (Model.TotalStock < Model.MinStock)
+        {
+            <span class="badge bg-danger ms-2">
+                Tồn kho thấp
+            </span>
+        }
+
+    </div>
+
+
+    <!-- THÔNG TIN CHUNG -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <strong>Thông tin sản phẩm</strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Mã sản phẩm
+                    </div>
+
+                    <strong>
+                        @Model.ProductCode
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Barcode
+                    </div>
+
+                    <strong>
+                        @Model.Barcode
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Loại
+                    </div>
+
+                    @switch (Model.ProductType)
+                    {
+                        case "BOOK":
+                            <span>Sách</span>
+                            break;
+
+                        case "STATIONERY":
+                            <span>Văn phòng phẩm</span>
+                            break;
+
+                        case "SOUVENIR":
+                            <span>Quà tặng</span>
+                            break;
+
+                        default:
+                            <span>@Model.ProductType</span>
+                            break;
+                    }
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Đơn vị tính
+                    </div>
+
+                    <strong>
+                        @Model.Unit
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Min Stock
+                    </div>
+
+                    <strong>
+                        @Model.MinStock
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Tổng tồn
+                    </div>
+
+                    <strong class="fs-5
+                        @(Model.TotalStock < Model.MinStock
+                            ? "text-danger"
+                            : "")">
+
+                        @Model.TotalStock
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BOOK -->
+
+    @if (Model.ProductType == "BOOK")
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+                <strong>Thông tin sách</strong>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            ISBN
+                        </div>
+
+                        <span>
+                            @(Model.ISBN ?? "-")
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            Tác giả
+                        </div>
+
+                        <span>
+                            @(Model.Author ?? "-")
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            Nhà xuất bản
+                        </div>
+
+                        <span>
+                            @(Model.PublisherName ?? "-")
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            Năm xuất bản
+                        </div>
+
+                        <span>
+                            @(Model.PublishYear?.ToString() ?? "-")
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-8">
+
+                        <div class="text-muted small">
+                            Thể loại
+                        </div>
+
+                        <span>
+                            @(Model.Category ?? "-")
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- STATIONERY -->
+
+    @if (Model.ProductType == "STATIONERY")
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+                <strong>Thông tin văn phòng phẩm</strong>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            Thương hiệu
+                        </div>
+
+                        <span>
+                            @(Model.Brand ?? "-")
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            Màu sắc
+                        </div>
+
+                        <span>
+                            @(Model.Color ?? "-")
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="text-muted small">
+                            Quy cách
+                        </div>
+
+                        <span>
+                            @(Model.Specification ?? "-")
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- STOCK BY LOCATION -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+
+            <strong>
+                Tồn kho theo vị trí
+            </strong>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>Kho</th>
+
+                            <th>Mã vị trí</th>
+
+                            <th>Tên vị trí</th>
+
+                            <th class="text-end">
+                                Số lượng
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    @if (Model.Stocks.Count == 0)
+                    {
+                        <tr>
+
+                            <td colspan="4"
+                                class="text-center text-muted py-4">
+
+                                Sản phẩm hiện chưa có tồn kho.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var stock in Model.Stocks)
+                        {
+                            <tr>
+
+                                <td>
+                                    @stock.WarehouseName
+                                </td>
+
+                                <td>
+                                    @stock.LocationCode
+                                </td>
+
+                                <td>
+                                    @stock.LocationName
+                                </td>
+
+                                <td class="text-end fw-semibold">
+                                    @stock.Quantity
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- NOTE -->
+
+    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+    {
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+                <strong>Ghi chú</strong>
+            </div>
+
+            <div class="card-body">
+
+                @Model.Notes
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ACTION -->
+
+    @if (User.IsInRole("ADMIN") ||
+         User.IsInRole("WAREHOUSE_MANAGER"))
+    {
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <strong>Trạng thái sản phẩm</strong>
+            </div>
+
+            <div class="card-body">
+
+                @if (Model.IsActive)
+                {
+                    <form asp-action="Deactivate"
+                          method="post"
+                          class="d-inline">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@Model.Id" />
+
+                        <button type="submit"
+                                class="btn btn-outline-danger"
+                                onclick="return confirm('Bạn có chắc muốn ngừng sử dụng sản phẩm này?');">
+
+                            Ngừng sử dụng
+
+                        </button>
+
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="Activate"
+                          method="post"
+                          class="d-inline">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@Model.Id" />
+
+                        <button type="submit"
+                                class="btn btn-outline-success">
+
+                            Kích hoạt lại
+
+                        </button>
+
+                    </form>
+                }
+
+            </div>
+
+        </div>
+    }
+
+</div>

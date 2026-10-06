@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using StationeryWarehouse.Data;
 using StationeryWarehouse.Entities;
 using StationeryWarehouse.Models.Outbound;
+using ProductEntity = StationeryWarehouse.Entities.Product;
 
 namespace StationeryWarehouse.Services.Outbound;
 
@@ -25,8 +26,8 @@ public class OutboundService : IOutboundService
         if (filter.Page < 1)
             filter.Page = 1;
 
-        if (filter.PageSize <= 0)
-            filter.PageSize = 20;
+        filter.PageSize =
+            StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
 
         var query = _context.OutboundIssues
             .AsNoTracking()
@@ -81,6 +82,19 @@ public class OutboundService : IOutboundService
         var totalItems =
             await query.CountAsync();
 
+        filter.TotalItems = totalItems;
+
+        var totalPages = (int)Math.Ceiling(
+            totalItems / (double)filter.PageSize);
+        if (totalPages == 0)
+        {
+            filter.Page = 1;
+        }
+        else if (filter.Page > totalPages)
+        {
+            filter.Page = totalPages;
+        }
+
         var items =
             await query
                 .OrderByDescending(x => x.IssueDate)
@@ -123,9 +137,6 @@ public class OutboundService : IOutboundService
                             x.Creator.FullName
                     })
                 .ToListAsync();
-
-        filter.TotalItems =
-            totalItems;
 
         var warehouses =
             await GetActiveWarehousesAsync();
@@ -983,7 +994,7 @@ public class OutboundService : IOutboundService
     }
 
 
-    private async Task<Product?>
+    private async Task<ProductEntity?>
         GetActiveProductAsync(long productId)
     {
         return await _context.Products

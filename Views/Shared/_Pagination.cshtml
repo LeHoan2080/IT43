@@ -1,9 +1,61 @@
 @model StationeryWarehouse.Models.Common.PaginationViewModel
 
-@if (Model.TotalItems > 0)
-{
-    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Primitives
 
+@{
+    string BuildPageUrl(int page)
+    {
+        var pageKey = Model.PageParameterName;
+        if (string.IsNullOrWhiteSpace(pageKey))
+        {
+            pageKey = Context.Request.Query.Keys
+                .FirstOrDefault(key =>
+                    key.Equals("Page", StringComparison.OrdinalIgnoreCase) ||
+                    key.Equals("Filter.Page", StringComparison.OrdinalIgnoreCase));
+
+            pageKey ??= Context.Request.Query.Keys
+                .Any(key => key.StartsWith("Filter.", StringComparison.OrdinalIgnoreCase))
+                    ? "Filter.Page"
+                    : "Page";
+        }
+
+        var query = new Dictionary<string, StringValues>(
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in Context.Request.Query)
+        {
+            query[item.Key] = item.Value;
+        }
+
+        if (pageKey != "Page")
+        {
+            query.Remove("Page");
+        }
+
+        if (pageKey != "Filter.Page")
+        {
+            query.Remove("Filter.Page");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Model.AdditionalQueryKey) &&
+            Model.AdditionalQueryValue != null)
+        {
+            query[Model.AdditionalQueryKey] = Model.AdditionalQueryValue;
+        }
+
+        query[pageKey] = page.ToString(
+            System.Globalization.CultureInfo.InvariantCulture);
+
+        var path = $"{Context.Request.PathBase}{Context.Request.Path}";
+        return QueryHelpers.AddQueryString(path, query);
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+    @if (Model.TotalItems > 0)
+    {
         <div class="text-muted small">
             Hiển thị
             <strong>@Model.FirstItemIndex</strong>
@@ -13,17 +65,23 @@
             <strong>@Model.TotalItems</strong>
             bản ghi
         </div>
+    }
+    else
+    {
+        <div class="text-muted small">0 bản ghi</div>
+    }
 
-        @if (Model.TotalPages > 1)
-        {
-            <nav aria-label="Phân trang">
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Phân trang">
                 <ul class="pagination pagination-sm mb-0">
 
                     @if (Model.HasPreviousPage)
                     {
                         <li class="page-item">
                             <a class="page-link"
-                               href="@ViewBag.PreviousPageUrl">
+                               aria-label="Trang trước"
+                               href="@BuildPageUrl(Model.Page - 1)">
                                 ‹
                             </a>
                         </li>
@@ -35,8 +93,32 @@
                         </li>
                     }
 
-                    @for (var currentPage = 1;
-                          currentPage <= Model.TotalPages;
+                    @{
+                        const int maxPageButtons = 7;
+                        var firstPage = Math.Max(1, Model.Page - (maxPageButtons / 2));
+                        var lastPage = Math.Min(
+                            Model.TotalPages,
+                            firstPage + maxPageButtons - 1);
+                        firstPage = Math.Max(
+                            1,
+                            lastPage - maxPageButtons + 1);
+                    }
+
+                    @if (firstPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" aria-label="Trang 1" href="@BuildPageUrl(1)">1</a>
+                        </li>
+                        @if (firstPage > 2)
+                        {
+                            <li class="page-item disabled" aria-hidden="true">
+                                <span class="page-link">…</span>
+                            </li>
+                        }
+                    }
+
+                    @for (var currentPage = firstPage;
+                          currentPage <= lastPage;
                           currentPage++)
                     {
                         if (currentPage == Model.Page)
@@ -51,18 +133,37 @@
                         {
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="@ViewBag.PageUrls[currentPage]">
+                                   aria-label="Trang @currentPage"
+                                   href="@BuildPageUrl(currentPage)">
                                     @currentPage
                                 </a>
                             </li>
                         }
                     }
 
+                    @if (lastPage < Model.TotalPages)
+                    {
+                        @if (lastPage < Model.TotalPages - 1)
+                        {
+                            <li class="page-item disabled" aria-hidden="true">
+                                <span class="page-link">…</span>
+                            </li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link"
+                               aria-label="Trang @Model.TotalPages"
+                               href="@BuildPageUrl(Model.TotalPages)">
+                                @Model.TotalPages
+                            </a>
+                        </li>
+                    }
+
                     @if (Model.HasNextPage)
                     {
                         <li class="page-item">
                             <a class="page-link"
-                               href="@ViewBag.NextPageUrl">
+                               aria-label="Trang tiếp theo"
+                               href="@BuildPageUrl(Model.Page + 1)">
                                 ›
                             </a>
                         </li>
@@ -75,13 +176,6 @@
                     }
 
                 </ul>
-            </nav>
-        }
-    </div>
-}
-else
-{
-    <div class="text-muted small mt-3">
-        Không có dữ liệu.
-    </div>
-}
+        </nav>
+    }
+</div>

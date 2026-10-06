@@ -13,6 +13,10 @@ using StationeryWarehouse.Services.Warehouse;
 using StationeryWarehouse.Services.Inbound;
 using StationeryWarehouse.Services.Outbound;
 using StationeryWarehouse.Services.Transfer;
+using StationeryWarehouse.Services.Stocktake;
+using StationeryWarehouse.Services.Settings;
+using StationeryWarehouse.Services.Product;
+using StationeryWarehouse.Services.Supplier;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -248,6 +252,33 @@ builder.Services.AddScoped<
     ITransferService,
     TransferService>();
 
+// ------------------------------------------------------------
+// S07 - Kiểm kê
+// ------------------------------------------------------------
+builder.Services.AddScoped<
+    IStocktakeService,
+    StocktakeService>();
+
+// ------------------------------------------------------------
+// S08 - Cấu hình & người dùng
+// ------------------------------------------------------------
+builder.Services.AddScoped<
+    ISettingsService,
+    SettingsService>();
+
+// ------------------------------------------------------------
+// S09 - Sản phẩm
+// ------------------------------------------------------------
+builder.Services.AddScoped<
+    IProductService,
+    ProductService>();
+
+// ------------------------------------------------------------
+// S10 - Nhà cung cấp
+// ------------------------------------------------------------
+builder.Services.AddScoped<
+    ISupplierService,
+    SupplierService>();
 // ============================================================
 // 7. BUILD APPLICATION
 // ============================================================

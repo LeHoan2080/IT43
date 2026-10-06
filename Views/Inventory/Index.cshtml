@@ -28,7 +28,7 @@
 
             <input type="hidden"
                    name="PageSize"
-                   value="20" />
+                   value="10" />
 
             <div class="row g-3">
 
@@ -63,8 +63,8 @@
                             Sách
                         </option>
 
-                        <option value="VPP"
-                                selected="@(filter.ProductType == "VPP")">
+                        <option value="STATIONERY"
+                                selected="@(filter.ProductType == "STATIONERY")">
                             Văn phòng phẩm
                         </option>
 
@@ -90,24 +90,30 @@
                         Kho
                     </label>
 
-                    <input type="text"
-                           name="WarehouseId"
-                           value="@filter.WarehouseId"
-                           class="form-control"
-                           placeholder="Mã kho..." />
+                    <select name="WarehouseId"
+                            class="form-select">
+                        <option value="">Tất cả kho</option>
+                        @foreach (var warehouse in Model.Warehouses)
+                        {
+                            <option value="@warehouse.Id"
+                                    selected="@(filter.WarehouseId == warehouse.Id.ToString())">
+                                @warehouse.Code - @warehouse.Name
+                            </option>
+                        }
+                    </select>
                 </div>
 
                 <!-- Location -->
                 <div class="col-md-4">
                     <label class="form-label">
-                        Vị trí
+                        ID vị trí (Bin)
                     </label>
 
                     <input type="text"
                            name="LocationId"
                            value="@filter.LocationId"
                            class="form-control"
-                           placeholder="ID vị trí..." />
+                           placeholder="Nhập ID vị trí..." />
                 </div>
 
                 <!-- Low stock -->
@@ -271,14 +277,14 @@
                             <td>
                                 @if (item.IsLowStock)
                                 {
-                                    <span class="badge bg-danger">
-                                        LOW STOCK
+                                    <span class="badge erp-status-badge erp-status-low">
+                                        Tồn thấp
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-success">
-                                        OK
+                                    <span class="badge erp-status-badge erp-status-active">
+                                        Đủ tồn
                                     </span>
                                 }
                             </td>
@@ -321,94 +327,16 @@
 
     </div>
 
-    <div class="card-body">
-
+    <div class="card-footer bg-white">
         @{
-            var pagination =
-                new StationeryWarehouse.Models.Common.PaginationViewModel
-                {
-                    Page = Model.Filter.Page,
-                    PageSize = Model.Filter.PageSize,
-                    TotalItems = Model.Filter.TotalItems
-                };
-
-            var previousPage =
-                Math.Max(1, pagination.Page - 1);
-
-            var nextPage =
-                Math.Min(
-                    pagination.TotalPages,
-                    pagination.Page + 1);
-
-            var previousPageUrl =
-                Url.Action(
-                    "Index",
-                    "Inventory",
-                    new
-                    {
-                        Keyword = Model.Filter.Keyword,
-                        WarehouseId = Model.Filter.WarehouseId,
-                        LocationId = Model.Filter.LocationId,
-                        ProductType = Model.Filter.ProductType,
-                        Supplier = Model.Filter.Supplier,
-                        LowStockOnly = Model.Filter.LowStockOnly,
-                        Page = previousPage,
-                        PageSize = Model.Filter.PageSize
-                    });
-
-            var nextPageUrl =
-                Url.Action(
-                    "Index",
-                    "Inventory",
-                    new
-                    {
-                        Keyword = Model.Filter.Keyword,
-                        WarehouseId = Model.Filter.WarehouseId,
-                        LocationId = Model.Filter.LocationId,
-                        ProductType = Model.Filter.ProductType,
-                        Supplier = Model.Filter.Supplier,
-                        LowStockOnly = Model.Filter.LowStockOnly,
-                        Page = nextPage,
-                        PageSize = Model.Filter.PageSize
-                    });
-
-            var pageUrls =
-                new Dictionary<int, string?>();
-
-            for (var currentPage = 1;
-                currentPage <= pagination.TotalPages;
-                currentPage++)
+            var pagination = new StationeryWarehouse.Models.Common.PaginationViewModel
             {
-                pageUrls[currentPage] =
-                    Url.Action(
-                        "Index",
-                        "Inventory",
-                        new
-                        {
-                            Keyword = Model.Filter.Keyword,
-                            WarehouseId = Model.Filter.WarehouseId,
-                            LocationId = Model.Filter.LocationId,
-                            ProductType = Model.Filter.ProductType,
-                            Supplier = Model.Filter.Supplier,
-                            LowStockOnly = Model.Filter.LowStockOnly,
-                            Page = currentPage,
-                            PageSize = Model.Filter.PageSize
-                        });
-            }
-
-            ViewBag.PreviousPageUrl =
-                previousPageUrl;
-
-            ViewBag.NextPageUrl =
-                nextPageUrl;
-
-            ViewBag.PageUrls =
-                pageUrls;
+                Page = Model.Filter.Page,
+                PageSize = Model.Filter.PageSize,
+                TotalItems = Model.Filter.TotalItems
+            };
         }
-
-        <partial name="_Pagination"
-                model="pagination" />
-
+        <partial name="_Pagination" model="pagination" />
     </div>
 
 </div>

@@ -22,12 +22,24 @@ public class WarehouseService : IWarehouseService
     // DANH SÁCH KHO
     // ============================================================
 
-    public async Task<List<WarehouseListViewModel>>
-        GetWarehousesAsync()
+    public async Task<WarehouseIndexViewModel>
+        GetWarehousesAsync(int page = 1)
     {
-        return await _context.Warehouses
+        const int pageSize =
+            PaginationViewModel.DefaultPageSize;
+
+        page = Math.Max(page, 1);
+        var query = _context.Warehouses
             .AsNoTracking()
-            .OrderBy(x => x.Code)
+            .OrderBy(x => x.Code);
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        page = totalPages == 0 ? 1 : Math.Min(page, totalPages);
+
+        var warehouses = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(x => new WarehouseListViewModel
             {
                 Id = x.Id,
@@ -38,6 +50,18 @@ public class WarehouseService : IWarehouseService
                 LocationCount = x.Locations.Count()
             })
             .ToListAsync();
+
+        return new WarehouseIndexViewModel
+        {
+            Warehouses = warehouses,
+            WarehousePagination = new PaginationViewModel
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                PageParameterName = "WarehousePage"
+            }
+        };
     }
 
 
@@ -48,15 +72,15 @@ public class WarehouseService : IWarehouseService
     public async Task<WarehouseIndexViewModel>
         GetLocationsAsync(
             long? warehouseId = null,
-            int page = 1,
-            int pageSize = 20)
+            int page = 1)
     {
         if (page < 1)
         {
             page = 1;
         }
 
-        pageSize = 20;
+        const int pageSize =
+            PaginationViewModel.DefaultPageSize;
 
         var query = _context.Locations
             .AsNoTracking()
@@ -77,8 +101,11 @@ public class WarehouseService : IWarehouseService
                 : (int)Math.Ceiling(
                     totalItems / (double)pageSize);
 
-        if (totalPages > 0 &&
-            page > totalPages)
+        if (totalPages == 0)
+        {
+            page = 1;
+        }
+        else if (page > totalPages)
         {
             page = totalPages;
         }
@@ -135,7 +162,8 @@ public class WarehouseService : IWarehouseService
                 {
                     Page = page,
                     PageSize = pageSize,
-                    TotalItems = totalItems
+                    TotalItems = totalItems,
+                    PageParameterName = "LocationPage"
                 }
         };
     }
@@ -245,7 +273,7 @@ public class WarehouseService : IWarehouseService
                 Code = x.Code,
                 Name = x.Name,
                 LocationType = x.LocationType,
-                Barcode = x.Barcode,
+                Barcode = x.Barcode ?? string.Empty,
                 IsActive = x.IsActive
             })
             .FirstOrDefaultAsync();

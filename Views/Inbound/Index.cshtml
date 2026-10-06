@@ -6,23 +6,6 @@
     var filter = Model.Filter;
 
     var currentPage = Model.Pagination.Page;
-    var totalPages = Model.Pagination.TotalPages;
-
-    string BuildPageUrl(int page)
-    {
-        return Url.Action(
-            "Index",
-            "Inbound",
-            new
-            {
-                Keyword = filter.Keyword,
-                Status = filter.Status,
-                WarehouseId = filter.WarehouseId,
-                FromDate = filter.FromDate?.ToString("yyyy-MM-dd"),
-                ToDate = filter.ToDate?.ToString("yyyy-MM-dd"),
-                Page = page
-            }) ?? "#";
-    }
 
     string GetStatusText(string status)
     {
@@ -40,11 +23,11 @@
     {
         return status switch
         {
-            "DRAFT" => "bg-secondary",
-            "RECEIVING" => "bg-warning text-dark",
-            "DONE" => "bg-success",
-            "CANCELLED" => "bg-danger",
-            _ => "bg-secondary"
+            "DRAFT" => "erp-status-draft",
+            "RECEIVING" => "erp-status-progress",
+            "DONE" => "erp-status-done",
+            "CANCELLED" => "erp-status-cancelled",
+            _ => "erp-status-draft"
         };
     }
 }
@@ -469,7 +452,7 @@
 
                                     <td class="text-center">
 
-                                        <span class="badge @GetStatusClass(item.Status)">
+                                        <span class="badge erp-status-badge @GetStatusClass(item.Status)">
                                             @GetStatusText(item.Status)
                                         </span>
 
@@ -567,139 +550,10 @@
         <!-- PAGINATION -->
         <!-- ================================================= -->
 
-        @if (Model.Pagination.TotalItems > 0)
-        {
-            <div class="card-footer bg-white">
-
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-                    <div class="text-muted small">
-
-                        Hiển thị
-
-                        <strong>
-                            @Model.Pagination.FirstItemIndex
-                        </strong>
-
-                        –
-
-                        <strong>
-                            @Model.Pagination.LastItemIndex
-                        </strong>
-
-                        /
-
-                        <strong>
-                            @Model.Pagination.TotalItems
-                        </strong>
-
-                        bản ghi
-
-                    </div>
-
-
-                    @if (totalPages > 1)
-                    {
-                        <nav aria-label="Phân trang">
-
-                            <ul class="pagination pagination-sm mb-0">
-
-                                <!-- Previous -->
-
-                                @if (Model.Pagination.HasPreviousPage)
-                                {
-                                    <li class="page-item">
-
-                                        <a class="page-link"
-                                           href="@BuildPageUrl(currentPage - 1)">
-
-                                            ‹
-
-                                        </a>
-
-                                    </li>
-                                }
-                                else
-                                {
-                                    <li class="page-item disabled">
-
-                                        <span class="page-link">
-                                            ‹
-                                        </span>
-
-                                    </li>
-                                }
-
-
-                                <!-- Page Numbers -->
-
-                                @for (var currentPageNumber = 1;
-                                      currentPageNumber <= totalPages;
-                                      currentPageNumber++)
-                                {
-                                    if (currentPageNumber == currentPage)
-                                    {
-                                        <li class="page-item active">
-
-                                            <span class="page-link">
-                                                @currentPageNumber
-                                            </span>
-
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <li class="page-item">
-
-                                            <a class="page-link"
-                                               href="@BuildPageUrl(currentPageNumber)">
-
-                                                @currentPageNumber
-
-                                            </a>
-
-                                        </li>
-                                    }
-                                }
-
-
-                                <!-- Next -->
-
-                                @if (Model.Pagination.HasNextPage)
-                                {
-                                    <li class="page-item">
-
-                                        <a class="page-link"
-                                           href="@BuildPageUrl(currentPage + 1)">
-
-                                            ›
-
-                                        </a>
-
-                                    </li>
-                                }
-                                else
-                                {
-                                    <li class="page-item disabled">
-
-                                        <span class="page-link">
-                                            ›
-                                        </span>
-
-                                    </li>
-                                }
-
-                            </ul>
-
-                        </nav>
-                    }
-
-                </div>
-
-            </div>
-        }
+        <div class="card-footer bg-white">
+            @await Html.PartialAsync("_Pagination", Model.Pagination)
+        </div>
 
     </div>
 
 </div>
-

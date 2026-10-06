@@ -470,7 +470,8 @@ namespace StationeryWarehouse.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
@@ -480,6 +481,7 @@ namespace StationeryWarehouse.Migrations
                         .HasColumnName("author");
 
                     b.Property<string>("Barcode")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("barcode");
@@ -514,9 +516,8 @@ namespace StationeryWarehouse.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
-                    b.Property<decimal>("MinStock")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
+                    b.Property<int>("MinStock")
+                        .HasColumnType("int")
                         .HasColumnName("min_stock");
 
                     b.Property<string>("Name")
@@ -528,7 +529,7 @@ namespace StationeryWarehouse.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)")
-                        .HasColumnName("notes");
+                        .HasColumnName("note");
 
                     b.Property<string>("ProductCode")
                         .IsRequired()
@@ -544,12 +545,11 @@ namespace StationeryWarehouse.Migrations
 
                     b.Property<int?>("PublishYear")
                         .HasColumnType("int")
-                        .HasColumnName("publish_year");
+                        .HasColumnName("publication_year");
 
-                    b.Property<string>("Publisher")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)")
-                        .HasColumnName("publisher");
+                    b.Property<long?>("PublisherId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("publisher_id");
 
                     b.Property<string>("Specification")
                         .HasMaxLength(500)
@@ -569,8 +569,7 @@ namespace StationeryWarehouse.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Barcode")
-                        .IsUnique()
-                        .HasFilter("[barcode] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasIndex("ISBN")
                         .IsUnique()
@@ -578,6 +577,8 @@ namespace StationeryWarehouse.Migrations
 
                     b.HasIndex("ProductCode")
                         .IsUnique();
+
+                    b.HasIndex("PublisherId");
 
                     b.ToTable("product", (string)null);
                 });
@@ -744,6 +745,193 @@ namespace StationeryWarehouse.Migrations
                     b.HasIndex("ProductId", "SourceLocationId");
 
                     b.ToTable("stock_transfer_line", (string)null);
+                });
+
+            modelBuilder.Entity("StationeryWarehouse.Entities.Stocktake", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("completed_at");
+
+                    b.Property<long?>("CompletedBy")
+                        .HasColumnType("bigint")
+                        .HasColumnName("completed_by");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("CreatedBy")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("StocktakeDate")
+                        .HasColumnType("date")
+                        .HasColumnName("stocktake_date");
+
+                    b.Property<string>("StocktakeNo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("stocktake_no");
+
+                    b.Property<long>("WarehouseId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("warehouse_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletedBy");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("StocktakeNo")
+                        .IsUnique();
+
+                    b.HasIndex("WarehouseId", "StocktakeDate");
+
+                    b.ToTable("stocktake", (string)null);
+                });
+
+            modelBuilder.Entity("StationeryWarehouse.Entities.StocktakeLine", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("CountedQty")
+                        .HasColumnType("int")
+                        .HasColumnName("counted_qty");
+
+                    b.Property<int>("DifferenceQty")
+                        .HasColumnType("int")
+                        .HasColumnName("difference_qty");
+
+                    b.Property<long>("LocationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("note");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<long>("StocktakeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("stocktake_id");
+
+                    b.Property<int>("SystemQty")
+                        .HasColumnType("int")
+                        .HasColumnName("system_qty");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("StocktakeId");
+
+                    b.HasIndex("ProductId", "LocationId");
+
+                    b.ToTable("stocktake_line", (string)null);
+                });
+
+            modelBuilder.Entity("StationeryWarehouse.Entities.Supplier", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("address");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("ContactPerson")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("contact_person");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("supplier", (string)null);
                 });
 
             modelBuilder.Entity("StationeryWarehouse.Entities.Warehouse", b =>
@@ -944,6 +1132,16 @@ namespace StationeryWarehouse.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("StationeryWarehouse.Entities.Product", b =>
+                {
+                    b.HasOne("StationeryWarehouse.Entities.Supplier", "Publisher")
+                        .WithMany("Products")
+                        .HasForeignKey("PublisherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Publisher");
+                });
+
             modelBuilder.Entity("StationeryWarehouse.Entities.StockMovement", b =>
                 {
                     b.HasOne("StationeryWarehouse.Entities.Location", "Location")
@@ -1033,6 +1231,59 @@ namespace StationeryWarehouse.Migrations
                     b.Navigation("StockTransfer");
                 });
 
+            modelBuilder.Entity("StationeryWarehouse.Entities.Stocktake", b =>
+                {
+                    b.HasOne("StationeryWarehouse.Entities.AppUser", "Completer")
+                        .WithMany()
+                        .HasForeignKey("CompletedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("StationeryWarehouse.Entities.AppUser", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StationeryWarehouse.Entities.Warehouse", "Warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Completer");
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("StationeryWarehouse.Entities.StocktakeLine", b =>
+                {
+                    b.HasOne("StationeryWarehouse.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StationeryWarehouse.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StationeryWarehouse.Entities.Stocktake", "Stocktake")
+                        .WithMany("Lines")
+                        .HasForeignKey("StocktakeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Stocktake");
+                });
+
             modelBuilder.Entity("StationeryWarehouse.Entities.AppRole", b =>
                 {
                     b.Navigation("Users");
@@ -1058,6 +1309,16 @@ namespace StationeryWarehouse.Migrations
             modelBuilder.Entity("StationeryWarehouse.Entities.StockTransfer", b =>
                 {
                     b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("StationeryWarehouse.Entities.Stocktake", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("StationeryWarehouse.Entities.Supplier", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("StationeryWarehouse.Entities.Warehouse", b =>

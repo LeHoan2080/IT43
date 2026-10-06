@@ -1,0 +1,351 @@
+@model StationeryWarehouse.Models.Supplier.SupplierIndexViewModel
+
+@{
+    ViewData["Title"] = "Nhà cung cấp / NXB";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="mb-1">
+                Nhà cung cấp / NXB
+            </h3>
+
+            <div class="text-muted">
+                Danh mục / Nhà cung cấp / NXB
+            </div>
+        </div>
+
+        @if (User.IsInRole("ADMIN") ||
+             User.IsInRole("WAREHOUSE_MANAGER"))
+        {
+            <a asp-action="Create"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-lg"></i>
+
+                Thêm mới
+            </a>
+        }
+
+    </div>
+
+
+    <!-- SUCCESS -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ERROR -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- FILTER -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get">
+
+                <div class="row g-3">
+
+                    <!-- KEYWORD -->
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Tìm kiếm
+                        </label>
+
+                        <input asp-for="Filter.Keyword"
+                               class="form-control"
+                               placeholder="Mã, tên, người liên hệ..." />
+
+                    </div>
+
+
+                    <!-- TYPE -->
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Loại
+                        </label>
+
+                        <select asp-for="Filter.Type"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            <option value="PUBLISHER">
+                                Nhà xuất bản
+                            </option>
+
+                            <option value="SUPPLIER">
+                                Nhà cung cấp
+                            </option>
+
+                            <option value="BOTH">
+                                Cả hai
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Trạng thái
+                        </label>
+
+                        <select asp-for="Filter.IsActive"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            <option value="true">
+                                Đang hoạt động
+                            </option>
+
+                            <option value="false">
+                                Ngừng sử dụng
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUTTON -->
+                    <div class="col-md-2 d-flex align-items-end">
+
+                        <button type="submit"
+                                class="btn btn-primary me-2">
+
+                            <i class="bi bi-search"></i>
+
+                            Tìm kiếm
+
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            Xóa lọc
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="card shadow-sm">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>Mã</th>
+
+                            <th>Tên</th>
+
+                            <th>Loại</th>
+
+                            <th>Người liên hệ</th>
+
+                            <th>Điện thoại</th>
+
+                            <th>Trạng thái</th>
+
+                            <th class="text-end">
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr>
+
+                            <td colspan="7"
+                                class="text-center text-muted py-5">
+
+                                Không tìm thấy nhà cung cấp/NXB.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.Items)
+                        {
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        @item.Code
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    @item.Name
+                                </td>
+
+                                <td>
+
+                                    @switch (item.Type)
+                                    {
+                                        case "PUBLISHER":
+
+                                            <span class="badge bg-primary">
+                                                Nhà xuất bản
+                                            </span>
+
+                                            break;
+
+                                        case "SUPPLIER":
+
+                                            <span class="badge bg-info text-dark">
+                                                Nhà cung cấp
+                                            </span>
+
+                                            break;
+
+                                        case "BOTH":
+
+                                            <span class="badge bg-success">
+                                                Cả hai
+                                            </span>
+
+                                            break;
+
+                                        default:
+
+                                            <span class="badge bg-secondary">
+                                                @item.Type
+                                            </span>
+
+                                            break;
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @(item.ContactPerson ?? "-")
+                                </td>
+
+                                <td>
+                                    @(item.Phone ?? "-")
+                                </td>
+
+                                <td>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge erp-status-badge erp-status-active">
+                                            Đang hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge erp-status-badge erp-status-inactive">
+                                            Ngừng sử dụng
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <a asp-action="Detail"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-primary">
+
+                                        Xem
+
+                                    </a>
+
+                                    @if (User.IsInRole("ADMIN") ||
+                                         User.IsInRole("WAREHOUSE_MANAGER"))
+                                    {
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+
+                                            Sửa
+
+                                        </a>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    <div class="card-footer bg-white">
+        @await Html.PartialAsync("_Pagination", Model.Pagination)
+    </div>
+
+    </div>
+
+</div>

@@ -1,3 +1,7 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
 <aside class="erp-sidebar" id="erpSidebar">
 
     <!-- LOGO -->
@@ -30,7 +34,8 @@
 
             <a asp-controller="Inventory"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Inventory" ? "active" : "")"
+               aria-current="@(currentController == "Inventory" ? "page" : null)">
 
                 <span class="erp-menu-icon">▦</span>
 
@@ -43,7 +48,8 @@
 
             <a asp-controller="Inbound"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Inbound" ? "active" : "")"
+               aria-current="@(currentController == "Inbound" ? "page" : null)">
 
                 <span class="erp-menu-icon">↓</span>
 
@@ -56,7 +62,8 @@
 
             <a asp-controller="Outbound"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Outbound" ? "active" : "")"
+               aria-current="@(currentController == "Outbound" ? "page" : null)">
 
                 <span class="erp-menu-icon">↑</span>
 
@@ -69,7 +76,8 @@
 
             <a asp-controller="Transfer"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Transfer" ? "active" : "")"
+               aria-current="@(currentController == "Transfer" ? "page" : null)">
 
                 <span class="erp-menu-icon">⇄</span>
 
@@ -82,7 +90,8 @@
 
             <a asp-controller="Stocktake"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Stocktake" ? "active" : "")"
+               aria-current="@(currentController == "Stocktake" ? "page" : null)">
 
                 <span class="erp-menu-icon">✓</span>
 
@@ -105,7 +114,8 @@
 
             <a asp-controller="Product"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Product" ? "active" : "")"
+               aria-current="@(currentController == "Product" ? "page" : null)">
 
                 <span class="erp-menu-icon">▤</span>
 
@@ -116,9 +126,10 @@
             </a>
 
 
-            <a asp-controller="Partner"
+            <a asp-controller="Supplier"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Supplier" ? "active" : "")"
+               aria-current="@(currentController == "Supplier" ? "page" : null)">
 
                 <span class="erp-menu-icon">♙</span>
 
@@ -141,7 +152,8 @@
 
             <a asp-controller="Warehouse"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Warehouse" ? "active" : "")"
+               aria-current="@(currentController == "Warehouse" ? "page" : null)">
 
                 <span class="erp-menu-icon">⌂</span>
 
@@ -154,7 +166,8 @@
 
             <a asp-controller="Settings"
                asp-action="Index"
-               class="erp-menu-item">
+               class="erp-menu-item @(currentController == "Settings" ? "active" : "")"
+               aria-current="@(currentController == "Settings" ? "page" : null)">
 
                 <span class="erp-menu-icon">⚙</span>
 

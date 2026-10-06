@@ -1,0 +1,83 @@
+@model StationeryWarehouse.Models.Settings.UserEditViewModel
+
+@{
+    ViewData["Title"] =
+        Model.Id == 0
+            ? "Thêm người dùng"
+            : "Sửa người dùng";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+
+        <div class="text-muted small">
+            Quản lý kho / Cài đặt / Người dùng
+        </div>
+
+        <h1 class="h3 mb-1">
+            @(Model.Id == 0
+                ? "Thêm người dùng"
+                : "Sửa người dùng")
+        </h1>
+
+    </div>
+
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <form
+                asp-action="@(Model.Id == 0 ? "CreateUser" : "EditUser")"
+                method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input
+                    type="hidden"
+                    asp-for="Id" />
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+
+                @await Html.PartialAsync(
+                    "_UserForm",
+                    Model)
+
+
+                <div class="d-flex gap-2 mt-4">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        Lưu
+
+                    </button>
+
+                    <a
+                        asp-action="Index"
+                        class="btn btn-outline-secondary">
+
+                        Hủy
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

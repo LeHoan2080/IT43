@@ -133,13 +133,13 @@
 
                                 @if (warehouse.IsActive)
                                 {
-                                    <span class="badge bg-success">
+                                    <span class="badge erp-status-badge erp-status-active">
                                         Hoạt động
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">
+                                    <span class="badge erp-status-badge erp-status-inactive">
                                         Ngừng hoạt động
                                     </span>
                                 }
@@ -201,6 +201,12 @@
 
     </div>
 
+    <div class="card-footer bg-white">
+        @await Html.PartialAsync(
+            "_Pagination",
+            Model.WarehousePagination)
+    </div>
+
 </div>
 
 
@@ -226,7 +232,7 @@
                 @if (selectedWarehouseId.HasValue)
                 {
                     var selectedWarehouse =
-                        Model.Warehouses.FirstOrDefault(
+                        Model.WarehouseOptions.FirstOrDefault(
                             x => x.Id ==
                                  selectedWarehouseId.Value);
 
@@ -283,9 +289,8 @@
               asp-controller="Warehouse"
               asp-action="Index">
 
-            <input type="hidden"
-                   name="page"
-                   value="1" />
+            <input type="hidden" name="WarehousePage" value="1" />
+            <input type="hidden" name="LocationPage" value="1" />
 
 
             <div class="row g-3 align-items-end">
@@ -304,7 +309,7 @@
                         </option>
 
                         @foreach (var warehouse
-                                 in Model.Warehouses)
+                                 in Model.WarehouseOptions)
                         {
                             if (selectedWarehouseId.HasValue &&
                                 selectedWarehouseId.Value ==
@@ -533,13 +538,13 @@
 
                                 @if (location.IsActive)
                                 {
-                                    <span class="badge bg-success">
+                                    <span class="badge erp-status-badge erp-status-active">
                                         Hoạt động
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">
+                                    <span class="badge erp-status-badge erp-status-inactive">
                                         Ngừng hoạt động
                                     </span>
                                 }
@@ -602,86 +607,8 @@
 
     <!-- PHÂN TRANG -->
 
-    <div class="card-body">
-
-        @{
-            var pagination =
-                Model.LocationPagination;
-
-            var previousPage =
-                Math.Max(
-                    1,
-                    pagination.Page - 1);
-
-            var nextPage =
-                Math.Min(
-                    pagination.TotalPages,
-                    pagination.Page + 1);
-
-
-            var previousPageUrl =
-                Url.Action(
-                    "Index",
-                    "Warehouse",
-                    new
-                    {
-                        warehouseId =
-                            selectedWarehouseId,
-                        page =
-                            previousPage
-                    });
-
-
-            var nextPageUrl =
-                Url.Action(
-                    "Index",
-                    "Warehouse",
-                    new
-                    {
-                        warehouseId =
-                            selectedWarehouseId,
-                        page =
-                            nextPage
-                    });
-
-
-            var pageUrls =
-                new Dictionary<int, string?>();
-
-
-            for (
-                var currentPage = 1;
-                currentPage <= pagination.TotalPages;
-                currentPage++)
-            {
-                pageUrls[currentPage] =
-                    Url.Action(
-                        "Index",
-                        "Warehouse",
-                        new
-                        {
-                            warehouseId =
-                                selectedWarehouseId,
-                            page =
-                                currentPage
-                        });
-            }
-
-
-            ViewBag.PreviousPageUrl =
-                previousPageUrl;
-
-            ViewBag.NextPageUrl =
-                nextPageUrl;
-
-            ViewBag.PageUrls =
-                pageUrls;
-        }
-
-
-        <partial name="_Pagination"
-                 model="pagination" />
-
+    <div class="card-footer bg-white">
+        <partial name="_Pagination" model="Model.LocationPagination" />
     </div>
 
 </div>

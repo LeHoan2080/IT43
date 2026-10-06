@@ -13,7 +13,7 @@ namespace StationeryWarehouse.Services;
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _context;
-    private readonly  IPasswordHasher<AppUser> _passwordHasher;
+    private readonly IPasswordHasher<AppUser> _passwordHasher;
 
     public AuthService(
         AppDbContext context,

@@ -1,0 +1,345 @@
+@model StationeryWarehouse.Models.Product.ProductFormViewModel
+
+<div asp-validation-summary="ModelOnly"
+     class="alert alert-danger">
+</div>
+
+@if (Model.Id > 0)
+{
+    <input asp-for="Id"
+           type="hidden" />
+}
+
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header">
+        <strong>Thông tin chung</strong>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+
+                <label asp-for="ProductCode"
+                       class="form-label">
+                    Mã sản phẩm <span class="text-danger">*</span>
+                </label>
+
+                <input asp-for="ProductCode"
+                       class="form-control" />
+
+                <span asp-validation-for="ProductCode"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="Barcode"
+                       class="form-label">
+                    Barcode <span class="text-danger">*</span>
+                </label>
+
+                <input asp-for="Barcode"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="ProductType"
+                       class="form-label">
+                    Loại sản phẩm
+                </label>
+
+                <select asp-for="ProductType"
+                        class="form-select"
+                        id="productType">
+
+                    <option value="BOOK">
+                        Sách
+                    </option>
+
+                    <option value="STATIONERY">
+                        Văn phòng phẩm
+                    </option>
+
+                    <option value="SOUVENIR">
+                        Quà tặng
+                    </option>
+
+                    <option value="OTHER">
+                        Khác
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <label asp-for="Name"
+                       class="form-label">
+                    Tên sản phẩm <span class="text-danger">*</span>
+                </label>
+
+                <input asp-for="Name"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-3">
+
+                <label asp-for="Unit"
+                       class="form-label">
+                    Đơn vị tính <span class="text-danger">*</span>
+                </label>
+
+                <input asp-for="Unit"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-3">
+
+                <label asp-for="MinStock"
+                       class="form-label">
+                    Min Stock
+                </label>
+
+                <input asp-for="MinStock"
+                       type="number"
+                       min="0"
+                       class="form-control" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm mb-4"
+     id="bookFields">
+
+    <div class="card-header">
+        <strong>Thông tin sách</strong>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+
+                <label asp-for="ISBN"
+                       class="form-label">
+                    ISBN
+                </label>
+
+                <input asp-for="ISBN"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="Author"
+                       class="form-label">
+                    Tác giả
+                </label>
+
+                <input asp-for="Author"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="PublisherId"
+                       class="form-label">
+                    Nhà xuất bản
+                </label>
+
+                <select asp-for="PublisherId"
+                        asp-items="Model.Publishers"
+                        class="form-select">
+
+                    <option value="">
+                        -- Chọn nhà xuất bản --
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="PublishYear"
+                       class="form-label">
+                    Năm xuất bản
+                </label>
+
+                <input asp-for="PublishYear"
+                       type="number"
+                       min="0"
+                       max="9999"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-8">
+
+                <label asp-for="Category"
+                       class="form-label">
+                    Thể loại
+                </label>
+
+                <input asp-for="Category"
+                       class="form-control" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm mb-4"
+     id="stationeryFields">
+
+    <div class="card-header">
+        <strong>Thông tin văn phòng phẩm</strong>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+
+                <label asp-for="Brand"
+                       class="form-label">
+                    Thương hiệu
+                </label>
+
+                <input asp-for="Brand"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="Color"
+                       class="form-label">
+                    Màu sắc
+                </label>
+
+                <input asp-for="Color"
+                       class="form-control" />
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <label asp-for="Specification"
+                       class="form-label">
+                    Quy cách
+                </label>
+
+                <input asp-for="Specification"
+                       class="form-control" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header">
+        <strong>Ghi chú</strong>
+    </div>
+
+    <div class="card-body">
+
+        <textarea asp-for="Notes"
+                  class="form-control"
+                  rows="4"></textarea>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    function updateProductTypeFields() {
+
+        const type =
+            document.getElementById("productType").value;
+
+        const bookFields =
+            document.getElementById("bookFields");
+
+        const stationeryFields =
+            document.getElementById("stationeryFields");
+
+
+        if (type === "BOOK") {
+
+            bookFields.style.display = "";
+
+            stationeryFields.style.display = "none";
+
+        }
+        else if (type === "STATIONERY") {
+
+            bookFields.style.display = "none";
+
+            stationeryFields.style.display = "";
+
+        }
+        else {
+
+            bookFields.style.display = "none";
+
+            stationeryFields.style.display = "none";
+
+        }
+    }
+
+
+    document
+        .getElementById("productType")
+        .addEventListener(
+            "change",
+            updateProductTypeFields);
+
+
+    updateProductTypeFields();
+
+</script>

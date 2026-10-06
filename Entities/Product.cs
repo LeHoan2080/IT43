@@ -6,7 +6,7 @@ public class Product
 
     public string ProductCode { get; set; } = string.Empty;
 
-    public string? Barcode { get; set; }
+    public string Barcode { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
 
@@ -14,24 +14,24 @@ public class Product
 
     public string Unit { get; set; } = string.Empty;
 
-    public decimal MinStock { get; set; }
+    public int MinStock { get; set; }
 
     public bool IsActive { get; set; } = true;
 
     public string? Notes { get; set; }
 
-    // Thông tin riêng của sách
+    // BOOK
     public string? ISBN { get; set; }
 
     public string? Author { get; set; }
 
-    public string? Publisher { get; set; }
+    public long? PublisherId { get; set; }
 
     public int? PublishYear { get; set; }
 
     public string? Category { get; set; }
 
-    // Thông tin riêng của văn phòng phẩm
+    // STATIONERY
     public string? Brand { get; set; }
 
     public string? Color { get; set; }
@@ -41,4 +41,6 @@ public class Product
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public Supplier? Publisher { get; set; }
 }

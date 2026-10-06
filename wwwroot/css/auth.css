@@ -1,0 +1,121 @@
+.auth-page {
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(ellipse at 15% 15%, rgba(113, 75, 103, 0.11), transparent 35%),
+        radial-gradient(ellipse at 85% 90%, rgba(160, 126, 151, 0.1), transparent 36%),
+        #f5f4f6;
+    color: #344054;
+    font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.auth-page > .container {
+    max-width: 100%;
+}
+
+.auth-page > .container > .row {
+    min-height: 100vh;
+    margin-top: 0 !important;
+    align-items: center;
+}
+
+.auth-page > .container > .row > [class*="col-"] {
+    flex: 0 1 440px;
+    width: 100%;
+    max-width: 440px;
+}
+
+.auth-page .card {
+    overflow: hidden;
+    border: 1px solid #e7e2e7;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(43, 31, 42, 0.1) !important;
+}
+
+.auth-page .card-body {
+    padding: clamp(26px, 5vw, 42px) !important;
+}
+
+.auth-page h3 {
+    margin-bottom: 8px !important;
+    color: #714b67;
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+
+.auth-page h5 {
+    margin-bottom: 28px !important;
+    color: #667085;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.auth-page .form-label {
+    margin-bottom: 7px;
+    color: #475467;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.auth-page .form-control,
+.auth-page .form-select {
+    min-height: 42px;
+    border-color: #d0d5dd;
+    border-radius: 7px;
+    font-size: 0.9rem;
+}
+
+.auth-page .form-control:focus,
+.auth-page .form-select:focus {
+    border-color: #ad91a7;
+    box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.13);
+}
+
+.auth-page .form-check-input:checked {
+    border-color: #714b67;
+    background-color: #714b67;
+}
+
+.auth-page .btn-primary {
+    min-height: 42px;
+    border-color: #714b67;
+    border-radius: 7px;
+    background: #714b67;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.auth-page .btn-primary:hover,
+.auth-page .btn-primary:focus-visible {
+    border-color: #5d3d55;
+    background: #5d3d55;
+}
+
+.auth-page a {
+    color: #714b67;
+    font-weight: 550;
+    text-decoration: none;
+}
+
+.auth-page a:hover {
+    color: #5d3d55;
+    text-decoration: underline;
+}
+
+.auth-page .alert {
+    border-radius: 8px;
+    font-size: 0.86rem;
+}
+
+@media (max-width: 575.98px) {
+    .auth-page > .container > .row > [class*="col-"] {
+        flex-basis: 100%;
+        max-width: 440px;
+    }
+
+    .auth-page .card-body {
+        padding: 26px 22px !important;
+    }
+}

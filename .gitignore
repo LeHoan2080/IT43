@@ -2,6 +2,8 @@ bin/
 obj/
 .vs/
 Migrations/
+!Migrations/
+!Migrations/*.cs
 appsettings*.json
 !appsettings.example.json
 *.user

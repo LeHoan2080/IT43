@@ -1,0 +1,470 @@
+@model StationeryWarehouse.Models.Stocktake.StocktakeFormViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết phiếu kiểm kê";
+
+    var canMutate =
+        User.IsInRole("ADMIN") ||
+        User.IsInRole("WAREHOUSE_MANAGER") ||
+        User.IsInRole("WAREHOUSE_OPERATOR");
+
+    var canEdit =
+        canMutate &&
+        Model.Status == "DRAFT";
+
+    var canStart =
+        canMutate &&
+        Model.Status == "DRAFT";
+
+    var canComplete =
+        canMutate &&
+        Model.Status == "COUNTING";
+
+    var canCancel =
+        canMutate &&
+        (Model.Status == "DRAFT" ||
+         Model.Status == "COUNTING");
+}
+
+<div class="container-fluid">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2">
+
+                <h4 class="mb-0">
+                    @Model.StocktakeNo
+                </h4>
+
+                @switch (Model.Status)
+                {
+                    case "DRAFT":
+                        <span class="badge bg-secondary">
+                            Nháp
+                        </span>
+                        break;
+
+                    case "COUNTING":
+                        <span class="badge bg-warning text-dark">
+                            Đang kiểm kê
+                        </span>
+                        break;
+
+                    case "DONE":
+                        <span class="badge bg-success">
+                            Hoàn tất
+                        </span>
+                        break;
+
+                    case "CANCELLED":
+                        <span class="badge bg-danger">
+                            Đã hủy
+                        </span>
+                        break;
+                }
+
+            </div>
+
+            <div class="text-muted small mt-1">
+                Chi tiết phiếu kiểm kê
+            </div>
+
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-light border">
+                Quay lại
+            </a>
+
+            @if (canEdit)
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-outline-primary">
+                    Sửa
+                </a>
+            }
+
+            @if (canStart)
+            {
+                <form asp-action="StartCounting"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-primary"
+                            onclick="return confirm('Bắt đầu kiểm kê phiếu này?');">
+
+                        Bắt đầu kiểm kê
+
+                    </button>
+
+                </form>
+            }
+
+            @if (canComplete)
+            {
+                <form asp-action="Complete"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-success"
+                            onclick="return confirm('Hoàn tất kiểm kê và cập nhật tồn kho?');">
+
+                        Hoàn tất kiểm kê
+
+                    </button>
+
+                </form>
+            }
+
+            @if (canCancel)
+            {
+                <form asp-action="Cancel"
+                      method="post"
+                      class="d-inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-outline-danger"
+                            onclick="return confirm('Bạn có chắc muốn hủy phiếu này?');">
+
+                        Hủy phiếu
+
+                    </button>
+
+                </form>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- HEADER -->
+    <div class="card mb-3">
+
+        <div class="card-header">
+            <strong>Thông tin phiếu</strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Số phiếu
+                    </div>
+
+                    <div class="fw-semibold">
+                        @Model.StocktakeNo
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="text-muted small">
+                        Kho
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        @{
+                            var warehouse =
+                                Model.Warehouses
+                                    .FirstOrDefault(
+                                        x => x.Id == Model.WarehouseId);
+                        }
+
+                        @(warehouse == null
+                            ? "-"
+                            : $"{warehouse.Code} - {warehouse.Name}")
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <div class="text-muted small">
+                        Ngày kiểm kê
+                    </div>
+
+                    <div class="fw-semibold">
+                        @Model.StocktakeDate.ToString("dd/MM/yyyy")
+                    </div>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <div class="text-muted small">
+                        Người tạo
+                    </div>
+
+                    <div class="fw-semibold">
+                        @Model.CreatorName
+                    </div>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <div class="text-muted small">
+                        Ngày tạo
+                    </div>
+
+                    <div class="fw-semibold">
+                        @(Model.CreatedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                    </div>
+
+                </div>
+
+                <div class="col-12">
+
+                    <div class="text-muted small">
+                        Ghi chú
+                    </div>
+
+                    <div>
+                        @(string.IsNullOrWhiteSpace(Model.Note)
+                            ? "-"
+                            : Model.Note)
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LINES -->
+    <div class="card">
+
+        <div class="card-header">
+            <strong>Chi tiết kiểm kê</strong>
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>#</th>
+                            <th>Sản phẩm</th>
+                            <th>Barcode SP</th>
+                            <th>Bin</th>
+                            <th>Barcode Bin</th>
+                            <th class="text-end">
+                                SL hệ thống
+                            </th>
+                            <th class="text-end">
+                                SL thực tế
+                            </th>
+                            <th class="text-end">
+                                Chênh lệch
+                            </th>
+                            <th>Ghi chú</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!Model.Lines.Any())
+                        {
+                            <tr>
+                                <td colspan="9"
+                                    class="text-center text-muted py-4">
+                                    Phiếu chưa có sản phẩm.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            var index = 1;
+
+                            foreach (var line in Model.Lines)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @index
+                                    </td>
+
+                                    <td>
+                                        <div class="fw-semibold">
+                                            @line.ProductDisplay
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(line.ProductISBN))
+                                        {
+                                            <div class="small text-muted">
+                                                ISBN: @line.ProductISBN
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(line.ProductBarcode)
+                                            ? "-"
+                                            : line.ProductBarcode)
+                                    </td>
+
+                                    <td>
+                                        @line.LocationDisplay
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(line.LocationBarcode)
+                                            ? "-"
+                                            : line.LocationBarcode)
+                                    </td>
+
+                                    <td class="text-end">
+                                        @line.SystemQty.ToString("N0")
+                                    </td>
+
+                                    <td class="text-end fw-semibold">
+                                        @line.CountedQty.ToString("N0")
+                                    </td>
+
+                                    <td class="text-end fw-semibold
+                                        @(line.DifferenceQty > 0
+                                            ? "text-success"
+                                            : line.DifferenceQty < 0
+                                                ? "text-danger"
+                                                : "text-muted")">
+
+                                        @(line.DifferenceQty > 0 ? "+" : "")
+                                        @line.DifferenceQty.ToString("N0")
+
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(line.Note)
+                                            ? "-"
+                                            : line.Note)
+                                    </td>
+
+                                </tr>
+
+                                index++;
+                            }
+                        }
+
+                    </tbody>
+
+                    @if (Model.Lines.Any())
+                    {
+                        <tfoot class="table-light">
+
+                            <tr>
+
+                                <th colspan="5"
+                                    class="text-end">
+                                    Tổng
+                                </th>
+
+                                <th class="text-end">
+                                    @Model.Lines
+                                        .Sum(x => x.SystemQty)
+                                        .ToString("N0")
+                                </th>
+
+                                <th class="text-end">
+                                    @Model.Lines
+                                        .Sum(x => x.CountedQty)
+                                        .ToString("N0")
+                                </th>
+
+                                @{
+                                    var totalDifference =
+                                        Model.Lines
+                                            .Sum(x => x.DifferenceQty);
+                                }
+
+                                <th class="text-end
+                                    @(totalDifference > 0
+                                        ? "text-success"
+                                        : totalDifference < 0
+                                            ? "text-danger"
+                                            : "text-muted")">
+
+                                    @(totalDifference > 0 ? "+" : "")
+                                    @totalDifference.ToString("N0")
+
+                                </th>
+
+                                <th></th>
+
+                            </tr>
+
+                        </tfoot>
+                    }
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

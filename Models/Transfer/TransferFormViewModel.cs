@@ -20,10 +20,12 @@ public class TransferFormViewModel
     public string? Note { get; set; }
 
     public List<TransferWarehouseOptionViewModel>
-        Warehouses { get; set; }
+        Warehouses
+    { get; set; }
         = new();
 
     public List<TransferLineViewModel>
-        Lines { get; set; }
+        Lines
+    { get; set; }
         = new();
 }

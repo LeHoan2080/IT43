@@ -1,0 +1,62 @@
+@model StationeryWarehouse.Models.Stocktake.StocktakeFormViewModel
+
+@{
+    ViewData["Title"] = "Tạo phiếu kiểm kê";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-3">
+        <h4 class="mb-1">Tạo phiếu kiểm kê</h4>
+
+        <div class="text-muted small">
+            Tạo phiếu và ghi nhận số lượng thực tế tại từng Bin
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <form asp-action="Create"
+          method="post"
+          id="stocktakeForm">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="Id" />
+
+        <input type="hidden"
+               asp-for="Status" />
+
+        @await Html.PartialAsync(
+            "_Form",
+            Model)
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+
+            <a asp-action="Index"
+               class="btn btn-light border">
+                Hủy
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+                <i class="bi bi-save"></i>
+                Lưu phiếu kiểm kê
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <script src="~/js/stocktake.js"
+            asp-append-version="true"></script>
+}

@@ -14,7 +14,7 @@ public class OutboundFilterViewModel
 
     public int Page { get; set; } = 1;
 
-    public int PageSize { get; set; } = 20;
+    public int PageSize { get; set; } = StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
 
     public int TotalItems { get; set; }
 

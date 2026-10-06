@@ -4,12 +4,11 @@ namespace StationeryWarehouse.Services.Warehouse;
 
 public interface IWarehouseService
 {
-    Task<List<WarehouseListViewModel>> GetWarehousesAsync();
+    Task<WarehouseIndexViewModel> GetWarehousesAsync(int page = 1);
 
     Task<WarehouseIndexViewModel> GetLocationsAsync(
         long? warehouseId = null,
-        int page = 1,
-        int pageSize = 20);
+        int page = 1);
 
     Task<WarehouseFormViewModel?> GetWarehouseFormAsync(
         long id);
@@ -19,7 +18,7 @@ public interface IWarehouseService
 
     Task<List<WarehouseListViewModel>> GetActiveWarehousesAsync();
 
-    Task<List<LocationListViewModel>>  GetActiveParentLocationsAsync(
+    Task<List<LocationListViewModel>> GetActiveParentLocationsAsync(
             long warehouseId,
             long? excludeId = null);
 

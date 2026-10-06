@@ -1,0 +1,381 @@
+@model StationeryWarehouse.Models.Product.ProductIndexViewModel
+
+@{
+    ViewData["Title"] = "Sản phẩm";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">Sản phẩm</h3>
+            <div class="text-muted">
+                Danh mục / Sản phẩm
+            </div>
+        </div>
+
+        @if (User.IsInRole("ADMIN") ||
+             User.IsInRole("WAREHOUSE_MANAGER"))
+        {
+            <a asp-action="Create"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Thêm sản phẩm
+            </a>
+        }
+    </div>
+
+
+    <!-- SUCCESS -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+
+    <!-- ERROR -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+
+    <!-- FILTER -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get">
+
+                <div class="row g-3">
+
+                    <!-- KEYWORD -->
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Tìm kiếm
+                        </label>
+
+                        <input asp-for="Filter.Keyword"
+                               class="form-control"
+                               placeholder="Mã, Barcode, ISBN, tên sản phẩm..." />
+
+                    </div>
+
+
+                    <!-- PRODUCT TYPE -->
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Loại sản phẩm
+                        </label>
+
+                        <select asp-for="Filter.ProductType"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            <option value="BOOK">
+                                Sách
+                            </option>
+
+                            <option value="STATIONERY">
+                                Văn phòng phẩm
+                            </option>
+
+                            <option value="SOUVENIR">
+                                Quà tặng
+                            </option>
+
+                            <option value="OTHER">
+                                Khác
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Trạng thái
+                        </label>
+
+                        <select asp-for="Filter.IsActive"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            <option value="true">
+                                Đang hoạt động
+                            </option>
+
+                            <option value="false">
+                                Ngừng sử dụng
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- LOW STOCK -->
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Tồn kho
+                        </label>
+
+                        <div class="form-check mt-2">
+
+                            <input asp-for="Filter.LowStock"
+                                   class="form-check-input" />
+
+                            <label asp-for="Filter.LowStock"
+                                   class="form-check-label">
+                                Chỉ xem tồn thấp
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- BUTTON -->
+                    <div class="col-md-2 d-flex align-items-end">
+
+                        <button type="submit"
+                                class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i>
+                            Tìm kiếm
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Xóa lọc
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="card shadow-sm">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>Mã</th>
+
+                            <th>Barcode</th>
+
+                            <th>Tên sản phẩm</th>
+
+                            <th>Loại</th>
+
+                            <th>ĐVT</th>
+
+                            <th class="text-end">
+                                Min Stock
+                            </th>
+
+                            <th class="text-end">
+                                Tổng tồn
+                            </th>
+
+                            <th>Trạng thái</th>
+
+                            <th class="text-end">
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr>
+
+                            <td colspan="9"
+                                class="text-center text-muted py-5">
+
+                                Không tìm thấy sản phẩm.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.Items)
+                        {
+                            var lowStock =
+                                item.TotalStock < item.MinStock;
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        @item.ProductCode
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    @item.Barcode
+                                </td>
+
+                                <td>
+                                    @item.Name
+                                </td>
+
+                                <td>
+                                    @switch (item.ProductType)
+                                    {
+                                        case "BOOK":
+                                            <span class="badge bg-primary">
+                                                Sách
+                                            </span>
+                                            break;
+
+                                        case "STATIONERY":
+                                            <span class="badge bg-info text-dark">
+                                                Văn phòng phẩm
+                                            </span>
+                                            break;
+
+                                        case "SOUVENIR":
+                                            <span class="badge bg-secondary">
+                                                Quà tặng
+                                            </span>
+                                            break;
+
+                                        default:
+                                            <span class="badge bg-light text-dark">
+                                                @item.ProductType
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+
+                                <td>
+                                    @item.Unit
+                                </td>
+
+                                <td class="text-end">
+                                    @item.MinStock
+                                </td>
+
+                                <td class="text-end">
+
+                                    @if (lowStock)
+                                    {
+                                        <span class="text-danger fw-bold">
+                                            @item.TotalStock
+                                        </span>
+
+                                        <span class="badge erp-status-badge erp-status-low ms-1">
+                                            Thấp
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @item.TotalStock
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge erp-status-badge erp-status-active">
+                                            Đang hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge erp-status-badge erp-status-inactive">
+                                            Ngừng sử dụng
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <a asp-action="Detail"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Xem
+                                    </a>
+
+                                    @if (User.IsInRole("ADMIN") ||
+                                         User.IsInRole("WAREHOUSE_MANAGER"))
+                                    {
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            Sửa
+                                        </a>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    <div class="card-footer bg-white">
+        @await Html.PartialAsync("_Pagination", Model.Pagination)
+    </div>
+
+    </div>
+
+</div>
