@@ -29,6 +29,10 @@ Chỉ chứng từ hoàn tất mới làm thay đổi tồn kho chính thức. K
 
 Ứng dụng đọc connection string `ConnectionStrings:DefaultConnection` và phần cấu hình `JwtSettings` gồm `Key`, `Issuer`, `Audience`, `ExpirationMinutes`. Khóa `JwtSettings:Key` phải là giá trị bí mật riêng của môi trường, đủ độ dài theo yêu cầu JWT; không đưa khóa hoặc mật khẩu thật vào Git.
 
+Trước lần chạy đầu, mở file SQL snapshot `Database/StationeryWarehouse.sql` trong SQL Server Management Studio (SSMS) và chạy toàn bộ script trên SQL Server. Script tạo database `stationery-warehouse`, schema và snapshot dữ liệu hiện tại. Chỉ chạy trên database mới/trống; script sẽ dừng nếu database đích đã có bảng. **File chứa password hash, tài khoản, thông tin liên hệ và lịch sử nghiệp vụ nên không được commit lên Git công khai hoặc gửi qua kênh không an toàn.** File snapshot đầy đủ được giữ ngoài Git; hãy xin chủ sở hữu database chuyển riêng nếu không có file trong source checkout.
+
+Dự án không còn migration. Khi thay đổi entity hoặc cấu hình cột/khóa/index, cần cập nhật và kiểm tra lại file SQL schema/snapshot một cách thủ công; ứng dụng sẽ không tự đồng bộ cấu trúc database.
+
 Ví dụ cấu hình dạng biến môi trường (thay các giá trị mẫu bằng cấu hình cục bộ):
 
 ```text
@@ -43,21 +47,22 @@ Từ thư mục gốc dự án, chạy:
 
 ```bash
 dotnet restore
+dotnet build
 dotnet run
 ```
 
-Seeder chạy khi ứng dụng khởi động, tự áp dụng migration và bổ sung dữ liệu demo còn thiếu. Mở URL mà dòng `Now listening on:` in ra trong terminal, thường là `http://localhost:xxxx` hoặc `https://localhost:xxxx`. Đăng nhập tại `/Auth/Login`.
+Ứng dụng không chạy migration, không tạo bảng và không seed dữ liệu khi khởi động. Nó xác nhận kết nối và dữ liệu role trong database đã được nạp SQL snapshot. Nếu thiếu database/bảng/role, chạy SQL snapshot trên SQL Server trước; sau đó kiểm tra connection string. Mở URL mà dòng `Now listening on:` in ra trong terminal, thường là `http://localhost:xxxx` hoặc `https://localhost:xxxx`. Đăng nhập tại `/Auth/Login`.
 
 Nếu khởi động thất bại:
 
 1. Xác nhận SQL Server đang chạy và connection string trỏ đúng server/database.
 2. Xác nhận đã cấu hình `JwtSettings:Key`, `Issuer`, `Audience`.
 3. Đọc lỗi đầu tiên trong terminal; lỗi kết nối database thường xuất hiện trước khi trang đăng nhập hoạt động.
-4. Không xóa database hoặc migration để xử lý lỗi trước khi sao lưu và xác định nguyên nhân.
+4. Không xóa database để xử lý lỗi trước khi sao lưu và xác định nguyên nhân.
 
 ## 3. Tài khoản, vai trò và quyền
 
-Seeder tạo các tài khoản mặc định sau nếu chúng chưa tồn tại:
+Snapshot hiện tại có các tài khoản sau:
 
 | Tài khoản | Mật khẩu phát triển mặc định | Vai trò |
 |---|---|---|
@@ -66,7 +71,7 @@ Seeder tạo các tài khoản mặc định sau nếu chúng chưa tồn tại:
 | `operator` | `Operator@123` | Nhân viên kho |
 | `viewer` | `Viewer@123` | Người xem |
 
-Đây là thông tin đăng nhập **chỉ dành cho database phát triển mới, cô lập**. Seeder không ghi đè mật khẩu của tài khoản đã tồn tại. Không sử dụng hoặc giữ các mật khẩu này trên môi trường triển khai thật; hãy đổi mật khẩu và tạo khóa JWT riêng trước khi đưa ứng dụng ra ngoài máy phát triển.
+Các mật khẩu phát triển trên chỉ tương ứng với các bản ghi trong snapshot hiện tại; ứng dụng không tự tạo hoặc đặt lại tài khoản. Không sử dụng các tài khoản/mật khẩu này trên môi trường triển khai thật; hãy đổi mật khẩu và tạo khóa JWT riêng trước khi đưa ứng dụng ra ngoài máy phát triển.
 
 | Vai trò | Dùng để kiểm thử |
 |---|---|
@@ -79,7 +84,7 @@ Các tài khoản `demo.user01` đến `demo.user12` là dữ liệu mẫu ngư�
 
 ## 4. Dữ liệu demo và cách chọn dữ liệu test
 
-Seeder cung cấp dữ liệu danh mục, kho/vị trí, tồn kho và chứng từ ở nhiều trạng thái. Mã nhận diện phổ biến:
+SQL snapshot cung cấp dữ liệu danh mục, kho/vị trí, tồn kho và chứng từ ở nhiều trạng thái. Mã nhận diện phổ biến:
 
 | Loại dữ liệu | Mã tham khảo |
 |---|---|
@@ -95,7 +100,7 @@ Seeder cung cấp dữ liệu danh mục, kho/vị trí, tồn kho và chứng t
 
 Một số bản ghi demo được đặt không hoạt động để thử bộ lọc/trạng thái. Khi lập chứng từ, chọn sản phẩm, nhà cung cấp, kho và Bin **đang hoạt động** từ danh sách/autocomplete. Không giả định tồn kho của một mã luôn bằng số lượng ban đầu: các chứng từ demo trạng thái Hoàn tất đã tạo biến động, và mỗi lần chạy thử nghiệp vụ có thể tiếp tục thay đổi tồn.
 
-Seeder được thiết kế để không tạo lặp các bản ghi demo đã có. Chạy lại ứng dụng không phải là thao tác reset dữ liệu và không hoàn nguyên các phiếu do người dùng tạo hoặc đã hoàn tất.
+Ứng dụng không thay đổi dữ liệu khi khởi động. SQL snapshot chỉ dành cho database mới/trống và không phải script reset; không chạy lại trên database đang sử dụng.
 
 ## 5. Cách dùng danh sách, bộ lọc và phân trang
 

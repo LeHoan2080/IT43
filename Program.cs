@@ -25,12 +25,17 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. DATABASE
 // ============================================================
 
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection is not configured.");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString(
-            "DefaultConnection"
-        )
-    ));
+    options.UseSqlServer(connectionString));
 
 
 // ============================================================
@@ -287,18 +292,28 @@ var app = builder.Build();
 
 
 // ============================================================
-// 8. DATABASE SEED
+// 8. DATABASE CONNECTION CHECK
 // ============================================================
-
 using (var scope = app.Services.CreateScope())
 {
-    var services =
-        scope.ServiceProvider;
+    var context = scope.ServiceProvider
+        .GetRequiredService<AppDbContext>();
 
-    var context =
-        services.GetRequiredService<AppDbContext>();
+    if (!await context.Database.CanConnectAsync())
+    {
+        throw new InvalidOperationException(
+            "Cannot connect to the configured SQL Server database. " +
+            "Create and populate the database with " +
+            "Database/StationeryWarehouse.sql, then verify " +
+            "ConnectionStrings:DefaultConnection.");
+    }
 
-    await DbSeeder.SeedAsync(context);
+    if (!await context.AppRoles.AnyAsync())
+    {
+        throw new InvalidOperationException(
+            "The configured database has no application roles. " +
+            "Run Database/StationeryWarehouse.sql against a new or empty database.");
+    }
 }
 
 
