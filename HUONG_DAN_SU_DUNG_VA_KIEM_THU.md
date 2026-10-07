@@ -29,7 +29,7 @@ Chỉ chứng từ hoàn tất mới làm thay đổi tồn kho chính thức. K
 
 Ứng dụng đọc connection string `ConnectionStrings:DefaultConnection` và phần cấu hình `JwtSettings` gồm `Key`, `Issuer`, `Audience`, `ExpirationMinutes`. Khóa `JwtSettings:Key` phải là giá trị bí mật riêng của môi trường, đủ độ dài theo yêu cầu JWT; không đưa khóa hoặc mật khẩu thật vào Git.
 
-Trước lần chạy đầu, mở file SQL snapshot `Database/StationeryWarehouse.sql` trong SQL Server Management Studio (SSMS) và chạy toàn bộ script trên SQL Server. Script tạo database `stationery-warehouse`, schema và snapshot dữ liệu hiện tại. Chỉ chạy trên database mới/trống; script sẽ dừng nếu database đích đã có bảng. **File chứa password hash, tài khoản, thông tin liên hệ và lịch sử nghiệp vụ nên không được commit lên Git công khai hoặc gửi qua kênh không an toàn.** File snapshot đầy đủ được giữ ngoài Git; hãy xin chủ sở hữu database chuyển riêng nếu không có file trong source checkout.
+Trước lần chạy đầu, mở file SQL snapshot `Database/StationeryWarehouse.sql` trong SQL Server Management Studio (SSMS) và chạy toàn bộ script trên SQL Server. Script tạo database `stationery-warehouse`, schema và dữ liệu demo đã ẩn danh. Chỉ chạy trên database mới/trống; script sẽ dừng nếu database đích đã có bảng. Tài khoản trong snapshot đã được ẩn danh và vô hiệu hóa; snapshot không giữ lại password hash gốc hay thông tin cá nhân.
 
 Dự án không còn migration. Khi thay đổi entity hoặc cấu hình cột/khóa/index, cần cập nhật và kiểm tra lại file SQL schema/snapshot một cách thủ công; ứng dụng sẽ không tự đồng bộ cấu trúc database.
 
@@ -62,16 +62,13 @@ Nếu khởi động thất bại:
 
 ## 3. Tài khoản, vai trò và quyền
 
-Snapshot hiện tại có các tài khoản sau:
+Các tài khoản được giữ trong snapshot chỉ để bảo toàn liên kết lịch sử, đã đổi tên và vô hiệu hóa. Snapshot không cung cấp mật khẩu đăng nhập mặc định. Có thể đăng ký tài khoản mới từ màn hình Đăng ký; tài khoản đăng ký mặc định có vai trò VIEWER.
 
-| Tài khoản | Mật khẩu phát triển mặc định | Vai trò |
+| Tài khoản | Trạng thái | Ghi chú |
 |---|---|---|
-| `admin` | `Admin@123` | Quản trị viên |
-| `manager` | `Manager@123` | Quản lý kho |
-| `operator` | `Operator@123` | Nhân viên kho |
-| `viewer` | `Viewer@123` | Người xem |
+| `demo.user<ID>` | Không hoạt động | Bản ghi ẩn danh để giữ lịch sử chứng từ; không đăng nhập được. |
 
-Các mật khẩu phát triển trên chỉ tương ứng với các bản ghi trong snapshot hiện tại; ứng dụng không tự tạo hoặc đặt lại tài khoản. Không sử dụng các tài khoản/mật khẩu này trên môi trường triển khai thật; hãy đổi mật khẩu và tạo khóa JWT riêng trước khi đưa ứng dụng ra ngoài máy phát triển.
+Ứng dụng không tự tạo hoặc đặt lại tài khoản khi khởi động. Để kiểm tra màn hình, tạo tài khoản mới qua Đăng ký; để kiểm thử quyền quản trị, cần cấp vai trò phù hợp trong database test theo quy trình nội bộ an toàn.
 
 | Vai trò | Dùng để kiểm thử |
 |---|---|
@@ -80,7 +77,7 @@ Các mật khẩu phát triển trên chỉ tương ứng với các bản ghi t
 | WAREHOUSE_OPERATOR | Thực hiện các nghiệp vụ nhập, xuất, điều chuyển và kiểm kê được cấp quyền. |
 | VIEWER | Kiểm tra quyền xem; không được phép thực hiện các thao tác bị giới hạn theo vai trò. |
 
-Các tài khoản `demo.user01` đến `demo.user12` là dữ liệu mẫu người dùng và được tạo ở trạng thái **không hoạt động**, không dùng các tài khoản này để đăng nhập. Để kiểm tra quyền, đăng xuất rồi đăng nhập lại bằng tài khoản có vai trò cần thử. Từ chối truy cập được chuyển tới trang `/Auth/AccessDenied`.
+Các bản ghi `demo.user<ID>` đều ở trạng thái **không hoạt động**; không dùng chúng để đăng nhập. Từ chối truy cập được chuyển tới trang `/Auth/AccessDenied`.
 
 ## 4. Dữ liệu demo và cách chọn dữ liệu test
 

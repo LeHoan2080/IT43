@@ -8,7 +8,7 @@ For end-user workflows and a module-by-module test checklist, see
 ## Run locally
 
 1. Install the .NET 10 SDK and SQL Server.
-2. Restore the database by running `Database/StationeryWarehouse.sql` in SQL Server Management Studio. The full snapshot contains account hashes and business/contact data, so the file is intentionally excluded from Git and must be transferred privately by the database owner.
+2. Restore the database by running `Database/StationeryWarehouse.sql` in SQL Server Management Studio. The script contains the anonymized demo database snapshot.
 3. Copy `appsettings.example.json` to `appsettings.json` and configure the SQL Server connection string and `JwtSettings` with values for your environment. Never commit real credentials or signing keys.
 4. Restore, build, and run:
 

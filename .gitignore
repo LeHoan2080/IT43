@@ -5,7 +5,6 @@ appsettings*.json
 !appsettings.example.json
 *.user
 *.suo
-Database/StationeryWarehouse.sql
 wwwroot/lib/**/*.map
 wwwroot/lib/**/*.css
 wwwroot/lib/**/*.js
