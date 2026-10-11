@@ -373,7 +373,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern:
-        "{controller=Home}/{action=Index}/{id?}"
+        "{controller=Inventory}/{action=Index}/{id?}"
 );
 
 

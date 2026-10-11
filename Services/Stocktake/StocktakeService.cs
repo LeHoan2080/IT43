@@ -439,10 +439,10 @@ public class StocktakeService : IStocktakeService
                         systemQty,
 
                     CountedQty =
-                        0,
+                        line.CountedQty,
 
                     DifferenceQty =
-                        0,
+                        line.CountedQty - systemQty,
 
                     Note =
                         string.IsNullOrWhiteSpace(
@@ -586,10 +586,10 @@ public class StocktakeService : IStocktakeService
                         systemQty,
 
                     CountedQty =
-                        0,
+                        line.CountedQty,
 
                     DifferenceQty =
-                        0,
+                        line.CountedQty - systemQty,
 
                     Note =
                         string.IsNullOrWhiteSpace(
@@ -1058,7 +1058,8 @@ public class StocktakeService : IStocktakeService
     public async Task<List<StocktakeLocationSearchViewModel>>
         SearchLocationsAsync(
             long warehouseId,
-            string keyword)
+            string keyword,
+            long productId = 0)
     {
         keyword =
             keyword?.Trim() ?? string.Empty;
@@ -1135,7 +1136,10 @@ public class StocktakeService : IStocktakeService
                         _context.InventoryBalances
                             .Where(i =>
                                 i.LocationId ==
-                                x.Id)
+                                    x.Id
+                                &&
+                                (productId <= 0
+                                    || i.ProductId == productId))
                             .Sum(i =>
                                 (int?)i.Quantity)
                             ?? 0

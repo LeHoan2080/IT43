@@ -357,8 +357,7 @@
                                     Trạng thái
                                 </th>
 
-                                <th class="text-end"
-                                    style="width: 100px;">
+                                <th class="text-end text-nowrap">
                                     Thao tác
                                 </th>
 
@@ -461,54 +460,32 @@
 
                                     <!-- Actions -->
 
-                                    <td class="text-end">
+                                    <td class="text-end text-nowrap">
 
-                                        <div class="dropdown">
+                                        <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
+                                            <a class="btn btn-sm btn-outline-primary text-nowrap"
+                                               asp-controller="Inbound"
+                                               asp-action="Detail"
+                                               asp-route-id="@item.Id"
+                                               aria-label="Xem chi tiết phiếu nhập"
+                                               title="Xem chi tiết phiếu nhập">
+                                                Xem
+                                            </a>
 
-                                            <button class="btn btn-sm btn-light"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false">
-
-                                                <i class="bi bi-three-dots"></i>
-
-                                            </button>
-
-                                            <ul class="dropdown-menu dropdown-menu-end">
-
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                       asp-controller="Inbound"
-                                                       asp-action="Detail"
-                                                       asp-route-id="@item.Id">
-
-                                                        <i class="bi bi-eye me-2"></i>
-                                                        Xem chi tiết
-
-                                                    </a>
-                                                </li>
-
-
-                                                @if (item.Status == "DRAFT" &&
-                                                     (User.IsInRole("ADMIN") ||
-                                                      User.IsInRole("WAREHOUSE_MANAGER") ||
-                                                      User.IsInRole("WAREHOUSE_OPERATOR")))
-                                                {
-                                                    <li>
-                                                        <a class="dropdown-item"
-                                                           asp-controller="Inbound"
-                                                           asp-action="Edit"
-                                                           asp-route-id="@item.Id">
-
-                                                            <i class="bi bi-pencil me-2"></i>
-                                                            Sửa
-
-                                                        </a>
-                                                    </li>
-                                                }
-
-                                            </ul>
-
+                                            @if (item.Status == "DRAFT" &&
+                                                 (User.IsInRole("ADMIN") ||
+                                                  User.IsInRole("WAREHOUSE_MANAGER") ||
+                                                  User.IsInRole("WAREHOUSE_OPERATOR")))
+                                            {
+                                                <a class="btn btn-sm btn-outline-secondary text-nowrap"
+                                                   asp-controller="Inbound"
+                                                   asp-action="Edit"
+                                                   asp-route-id="@item.Id"
+                                                   aria-label="Sửa phiếu nhập"
+                                                   title="Sửa phiếu nhập">
+                                                    Sửa
+                                                </a>
+                                            }
                                         </div>
 
                                     </td>

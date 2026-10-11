@@ -111,7 +111,8 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-hover align-middle">
+                        <table class="table table-hover align-middle"
+                               style="min-width: 900px;">
 
                             <thead class="table-light">
 
@@ -182,14 +183,13 @@
                                                 }
                                             </td>
 
-                                            <td>
-                                                @user.CreatedAt.ToLocalTime()
-                                                    .ToString("dd/MM/yyyy HH:mm")
+                                            <td class="text-nowrap">
+                                                @user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                                             </td>
 
-                                            <td class="text-end">
+                                            <td class="text-end text-nowrap">
 
-                                                <div class="btn-group">
+                                                <div class="d-inline-flex align-items-center justify-content-end gap-2 flex-nowrap">
 
                                                     <a
                                                         asp-action="EditUser"
@@ -212,7 +212,7 @@
                                                     <form
                                                         asp-action="ToggleUser"
                                                         method="post"
-                                                        class="d-inline">
+                                                        class="mb-0">
 
                                                         @Html.AntiForgeryToken()
 
@@ -223,7 +223,7 @@
 
                                                         <button
                                                             type="submit"
-                                                            class="btn btn-sm btn-outline-warning">
+                                                            class="btn btn-sm btn-outline-warning erp-user-toggle-btn">
 
                                                             @(user.IsActive
                                                                 ? "Khóa"

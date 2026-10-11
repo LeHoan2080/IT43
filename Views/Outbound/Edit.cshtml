@@ -21,7 +21,9 @@
     <form asp-controller="Outbound"
           asp-action="Edit"
           method="post"
-          id="outboundForm">
+          id="outboundForm"
+          data-product-search-url="@Url.Action("SearchProduct", "Outbound")"
+          data-location-search-url="@Url.Action("SearchLocation", "Outbound")">
 
         @Html.AntiForgeryToken()
 

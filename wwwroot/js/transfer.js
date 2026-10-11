@@ -15,6 +15,118 @@ document.addEventListener("DOMContentLoaded", function () {
     const destinationWarehouse =
         document.getElementById("destinationWarehouse");
 
+    const searchTimers = new WeakMap();
+
+    function hideSearchResults(results) {
+        if (!results) {
+            return;
+        }
+
+        results.style.display = "none";
+        results.innerHTML = "";
+    }
+
+    function positionSearchResults(input, results) {
+        if (!input || !results || results.style.display === "none") {
+            return;
+        }
+
+        const bounds = input.getBoundingClientRect();
+        const left = Math.max(8, Math.min(bounds.left, window.innerWidth - 200));
+        const width = Math.min(
+            Math.max(bounds.width, 200),
+            window.innerWidth - left - 8
+        );
+        const spaceBelow = Math.max(0, window.innerHeight - bounds.bottom - 8);
+        const spaceAbove = Math.max(0, bounds.top - 8);
+        const placeBelow = spaceBelow >= 80 || spaceBelow >= spaceAbove;
+        const availableHeight = placeBelow ? spaceBelow : spaceAbove;
+        const maxHeight = Math.max(0, Math.min(280, availableHeight));
+        const popupHeight = Math.min(maxHeight, results.scrollHeight);
+
+        results.style.left = `${left}px`;
+        results.style.width = `${width}px`;
+        results.style.maxHeight = `${maxHeight}px`;
+        results.style.top = placeBelow
+            ? `${bounds.bottom}px`
+            : `${Math.max(8, bounds.top - popupHeight)}px`;
+    }
+
+    function showSearchMessage(input, results, message) {
+        results.classList.add("transfer-search-dropdown");
+        results.innerHTML = `
+            <div class="search-result-empty">${escapeHtml(message)}</div>
+        `;
+        results.style.display = "block";
+        positionSearchResults(input, results);
+    }
+
+    document.addEventListener("click", function (event) {
+        if (event.target.closest(".transfer-search-dropdown") ||
+            event.target.closest(".product-search") ||
+            event.target.closest(".source-location-search") ||
+            event.target.closest(".destination-location-search") ||
+            event.target.closest(".btn-search-product") ||
+            event.target.closest(".btn-search-source-location") ||
+            event.target.closest(".btn-search-destination-location")) {
+            return;
+        }
+
+        document.querySelectorAll(".transfer-search-dropdown").forEach(hideSearchResults);
+    });
+
+    function scheduleSearch(input, callback) {
+        clearTimeout(searchTimers.get(input));
+
+        const keyword = input.value;
+        if (!keyword.trim()) {
+            hideSearchResults(input.closest(".input-group")?.nextElementSibling);
+            return;
+        }
+
+        searchTimers.set(
+            input,
+            setTimeout(() => callback(keyword), 250)
+        );
+    }
+
+    window.addEventListener("scroll", function () {
+        document
+            .querySelectorAll(".transfer-search-dropdown")
+            .forEach(function (results) {
+                const row = results.closest(".transfer-line");
+                if (!row) {
+                    return;
+                }
+
+                const input = results.classList.contains("product-results")
+                    ? row.querySelector(".product-search")
+                    : results.classList.contains("source-location-results")
+                        ? row.querySelector(".source-location-search")
+                        : row.querySelector(".destination-location-search");
+
+                positionSearchResults(input, results);
+            });
+    }, true);
+
+    window.addEventListener("resize", function () {
+        document
+            .querySelectorAll(".transfer-search-dropdown")
+            .forEach(function (results) {
+                const row = results.closest(".transfer-line");
+                if (!row) {
+                    return;
+                }
+
+                const input = results.classList.contains("product-results")
+                    ? row.querySelector(".product-search")
+                    : results.classList.contains("source-location-results")
+                        ? row.querySelector(".source-location-search")
+                        : row.querySelector(".destination-location-search");
+
+                positionSearchResults(input, results);
+            });
+    });
 
     // =========================================================
     // ADD LINE
@@ -229,6 +341,21 @@ document.addEventListener("DOMContentLoaded", function () {
         if (productInput) {
 
             productInput.addEventListener(
+                "input",
+                function () {
+                    row.querySelector(".product-id").value = "0";
+                    row.querySelector(".product-barcode").value = "";
+                    row.querySelector(".source-location-id").value = "0";
+                    row.querySelector(".source-location-search").value = "";
+                    row.querySelector(".source-stock").textContent = "0";
+                    hideSearchResults(row.querySelector(".product-results"));
+                    hideSearchResults(row.querySelector(".source-location-results"));
+                    scheduleSearch(productInput, function (keyword) {
+                        searchProduct(row, keyword);
+                    });
+                });
+
+            productInput.addEventListener(
                 "keydown",
                 function (event) {
 
@@ -238,7 +365,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         searchProduct(
                             row,
-                            productInput.value);
+                            productInput.value,
+                            true);
 
                     }
 
@@ -273,6 +401,17 @@ document.addEventListener("DOMContentLoaded", function () {
         if (sourceInput) {
 
             sourceInput.addEventListener(
+                "input",
+                function () {
+                    row.querySelector(".source-location-id").value = "0";
+                    row.querySelector(".source-stock").textContent = "0";
+                    hideSearchResults(row.querySelector(".source-location-results"));
+                    scheduleSearch(sourceInput, function (keyword) {
+                        searchSourceLocation(row, keyword);
+                    });
+                });
+
+            sourceInput.addEventListener(
                 "keydown",
                 function (event) {
 
@@ -282,7 +421,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         searchSourceLocation(
                             row,
-                            sourceInput.value);
+                            sourceInput.value,
+                            true);
 
                     }
 
@@ -317,6 +457,16 @@ document.addEventListener("DOMContentLoaded", function () {
         if (destinationInput) {
 
             destinationInput.addEventListener(
+                "input",
+                function () {
+                    row.querySelector(".destination-location-id").value = "0";
+                    hideSearchResults(row.querySelector(".destination-location-results"));
+                    scheduleSearch(destinationInput, function (keyword) {
+                        searchDestinationLocation(row, keyword);
+                    });
+                });
+
+            destinationInput.addEventListener(
                 "keydown",
                 function (event) {
 
@@ -326,7 +476,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         searchDestinationLocation(
                             row,
-                            destinationInput.value);
+                            destinationInput.value,
+                            true);
 
                     }
 
@@ -466,7 +617,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function searchProduct(
         row,
-        keyword) {
+        keyword,
+        selectSingleResult = false) {
 
         keyword =
             keyword.trim();
@@ -493,25 +645,26 @@ document.addEventListener("DOMContentLoaded", function () {
             const products =
                 await response.json();
 
+            const input = row.querySelector(".product-search");
+            if (!row.isConnected || input.value.trim() !== keyword) {
+                return;
+            }
+
             const results =
                 row.querySelector(
                     ".product-results");
 
             results.innerHTML = "";
 
-
-            if (!products.length) {
-
-                results.innerHTML = `
-                    <div class="alert alert-warning mt-1 py-2">
-                        Không tìm thấy sản phẩm
-                    </div>
-                `;
-
+            if (!Array.isArray(products) || !products.length) {
+                showSearchMessage(input, results, "Không tìm thấy sản phẩm");
                 return;
-
             }
 
+            if (selectSingleResult && products.length === 1) {
+                selectProduct(row, products[0]);
+                return;
+            }
 
             products.forEach(function (product) {
 
@@ -543,11 +696,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 button.addEventListener(
                     "click",
                     function () {
-
                         selectProduct(
                             row,
                             product);
-
                     });
 
                 results.appendChild(button);
@@ -556,13 +707,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.classList.add(
                 "list-group");
+            results.classList.add("transfer-search-dropdown");
+            results.style.display = "block";
+            positionSearchResults(input, results);
 
         }
         catch (error) {
 
             console.error(error);
 
-            alert(
+            showSearchMessage(
+                row.querySelector(".product-search"),
+                row.querySelector(".product-results"),
                 "Không thể tìm sản phẩm.");
 
         }
@@ -592,6 +748,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         row.querySelector(
             ".product-results").innerHTML = "";
+        hideSearchResults(row.querySelector(".product-results"));
 
         row.querySelector(
             ".source-location-id").value =
@@ -614,7 +771,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function searchSourceLocation(
         row,
-        keyword) {
+        keyword,
+        selectSingleResult = false) {
 
         const warehouseId =
             sourceWarehouse
@@ -627,10 +785,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (!warehouseId) {
-
-            alert(
+            showSearchMessage(
+                row.querySelector(".source-location-search"),
+                row.querySelector(".source-location-results"),
                 "Vui lòng chọn kho nguồn trước.");
-
             return;
 
         }
@@ -638,10 +796,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!productId ||
             productId === "0") {
-
-            alert(
+            showSearchMessage(
+                row.querySelector(".source-location-search"),
+                row.querySelector(".source-location-results"),
                 "Vui lòng chọn sản phẩm trước.");
-
             return;
 
         }
@@ -670,6 +828,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const locations =
                 await response.json();
 
+            const input = row.querySelector(".source-location-search");
+            if (!row.isConnected || input.value.trim() !== keyword.trim()) {
+                return;
+            }
+
             const results =
                 row.querySelector(
                     ".source-location-results");
@@ -677,16 +840,14 @@ document.addEventListener("DOMContentLoaded", function () {
             results.innerHTML = "";
 
 
-            if (!locations.length) {
-
-                results.innerHTML = `
-                    <div class="alert alert-warning mt-1 py-2">
-                        Không tìm thấy Bin nguồn có tồn
-                    </div>
-                `;
-
+            if (!Array.isArray(locations) || !locations.length) {
+                showSearchMessage(input, results, "Không tìm thấy Bin nguồn có tồn");
                 return;
+            }
 
+            if (selectSingleResult && locations.length === 1) {
+                selectSourceLocation(row, locations[0]);
+                return;
             }
 
 
@@ -733,13 +894,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.classList.add(
                 "list-group");
+            results.classList.add("transfer-search-dropdown");
+            results.style.display = "block";
+            positionSearchResults(input, results);
 
         }
         catch (error) {
 
             console.error(error);
 
-            alert(
+            showSearchMessage(
+                row.querySelector(".source-location-search"),
+                row.querySelector(".source-location-results"),
                 "Không thể tìm Bin nguồn.");
 
         }
@@ -770,6 +936,7 @@ document.addEventListener("DOMContentLoaded", function () {
         row.querySelector(
             ".source-location-results").innerHTML =
                 "";
+        hideSearchResults(row.querySelector(".source-location-results"));
 
         validateQuantity(row);
 
@@ -782,7 +949,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function searchDestinationLocation(
         row,
-        keyword) {
+        keyword,
+        selectSingleResult = false) {
 
         const warehouseId =
             destinationWarehouse
@@ -791,10 +959,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (!warehouseId) {
-
-            alert(
+            showSearchMessage(
+                row.querySelector(".destination-location-search"),
+                row.querySelector(".destination-location-results"),
                 "Vui lòng chọn kho đích trước.");
-
             return;
 
         }
@@ -822,6 +990,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const locations =
                 await response.json();
 
+            const input = row.querySelector(".destination-location-search");
+            if (!row.isConnected || input.value.trim() !== keyword.trim()) {
+                return;
+            }
 
             const results =
                 row.querySelector(
@@ -830,16 +1002,14 @@ document.addEventListener("DOMContentLoaded", function () {
             results.innerHTML = "";
 
 
-            if (!locations.length) {
-
-                results.innerHTML = `
-                    <div class="alert alert-warning mt-1 py-2">
-                        Không tìm thấy Bin đích
-                    </div>
-                `;
-
+            if (!Array.isArray(locations) || !locations.length) {
+                showSearchMessage(input, results, "Không tìm thấy Bin đích");
                 return;
+            }
 
+            if (selectSingleResult && locations.length === 1) {
+                selectDestinationLocation(row, locations[0]);
+                return;
             }
 
 
@@ -883,13 +1053,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.classList.add(
                 "list-group");
+            results.classList.add("transfer-search-dropdown");
+            results.style.display = "block";
+            positionSearchResults(input, results);
 
         }
         catch (error) {
 
             console.error(error);
 
-            alert(
+            showSearchMessage(
+                row.querySelector(".destination-location-search"),
+                row.querySelector(".destination-location-results"),
                 "Không thể tìm Bin đích.");
 
         }
@@ -916,6 +1091,7 @@ document.addEventListener("DOMContentLoaded", function () {
         row.querySelector(
             ".destination-location-results").innerHTML =
                 "";
+        hideSearchResults(row.querySelector(".destination-location-results"));
 
     }
 

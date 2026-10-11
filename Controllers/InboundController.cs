@@ -56,11 +56,16 @@ public class InboundController : Controller
             await _inboundService
                 .GetActiveWarehousesAsync();
 
+        var suppliers =
+            await _inboundService
+                .GetActiveSuppliersAsync();
+
         var model = new InboundFormViewModel
         {
             ReceiptDate = DateTime.Today,
             Status = "DRAFT",
             Warehouses = warehouses,
+            Suppliers = suppliers,
             Lines = new List<InboundLineViewModel>()
         };
 
@@ -82,9 +87,16 @@ public class InboundController : Controller
     {
         if (!ModelState.IsValid)
         {
+            await _inboundService
+                .PopulateInboundLineDetailsAsync(model);
+
             model.Warehouses =
                 await _inboundService
                     .GetActiveWarehousesAsync();
+
+            model.Suppliers =
+                await _inboundService
+                    .GetActiveSuppliersAsync();
 
             ViewData["Title"] = "Tạo phiếu nhập";
 
@@ -112,9 +124,16 @@ public class InboundController : Controller
                 string.Empty,
                 ex.Message);
 
+            await _inboundService
+                .PopulateInboundLineDetailsAsync(model);
+
             model.Warehouses =
                 await _inboundService
                     .GetActiveWarehousesAsync();
+
+            model.Suppliers =
+                await _inboundService
+                    .GetActiveSuppliersAsync();
 
             ViewData["Title"] = "Tạo phiếu nhập";
 
@@ -151,6 +170,10 @@ public class InboundController : Controller
                 new { id });
         }
 
+        model.Suppliers =
+            await _inboundService
+                .GetActiveSuppliersAsync();
+
         ViewData["Title"] =
             $"Sửa phiếu {model.ReceiptNo}";
 
@@ -170,9 +193,16 @@ public class InboundController : Controller
     {
         if (!ModelState.IsValid)
         {
+            await _inboundService
+                .PopulateInboundLineDetailsAsync(model);
+
             model.Warehouses =
                 await _inboundService
                     .GetActiveWarehousesAsync();
+
+            model.Suppliers =
+                await _inboundService
+                    .GetActiveSuppliersAsync();
 
             ViewData["Title"] =
                 $"Sửa phiếu {model.ReceiptNo}";
@@ -198,9 +228,16 @@ public class InboundController : Controller
                 string.Empty,
                 ex.Message);
 
+            await _inboundService
+                .PopulateInboundLineDetailsAsync(model);
+
             model.Warehouses =
                 await _inboundService
                     .GetActiveWarehousesAsync();
+
+            model.Suppliers =
+                await _inboundService
+                    .GetActiveSuppliersAsync();
 
             ViewData["Title"] =
                 $"Sửa phiếu {model.ReceiptNo}";

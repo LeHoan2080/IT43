@@ -159,10 +159,13 @@
                                class="form-control" />
                     </div>
 
-                    <div class="col-md-1 d-flex align-items-end">
+                    <div class="col-12 d-flex justify-content-end">
                         <button type="submit"
-                                class="btn btn-primary w-100">
+                                class="btn btn-primary"
+                                aria-label="Tìm kiếm"
+                                title="Tìm kiếm">
                             <i class="bi bi-search"></i>
+                            <span>Tìm kiếm</span>
                         </button>
                     </div>
 
@@ -274,12 +277,15 @@
                                 @item.CreatorName
                             </td>
 
-                            <td class="text-end">
+                            <td class="text-end text-nowrap">
 
                                 <a asp-action="Detail"
                                    asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-primary">
+                                   class="btn btn-sm btn-outline-primary text-nowrap"
+                                   aria-label="Xem chi tiết"
+                                   title="Xem chi tiết">
                                     <i class="bi bi-eye"></i>
+                                    <span>Xem</span>
                                 </a>
 
                                 @if (item.Status == "DRAFT"
@@ -294,8 +300,11 @@
                                 {
                                     <a asp-action="Edit"
                                        asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-outline-secondary">
+                                       class="btn btn-sm btn-outline-secondary text-nowrap"
+                                       aria-label="Sửa phiếu"
+                                       title="Sửa phiếu">
                                         <i class="bi bi-pencil"></i>
+                                        <span>Sửa</span>
                                     </a>
                                 }
 

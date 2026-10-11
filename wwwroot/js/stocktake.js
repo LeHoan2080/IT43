@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const productSearchUrl = "/Stocktake/SearchProduct";
     const locationSearchUrl = "/Stocktake/SearchLocation";
 
-    let searchTimer = null;
+    const searchTimers = new WeakMap();
 
 
     // =========================================================
@@ -45,6 +45,77 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
+
+    function positionSearchResults(input, results) {
+        if (!input || !results || results.style.display === "none") {
+            return;
+        }
+
+        const bounds = input.getBoundingClientRect();
+        const left = Math.max(8, Math.min(bounds.left, window.innerWidth - 200));
+        const width = Math.min(Math.max(bounds.width, 200), window.innerWidth - left - 8);
+        const spaceBelow = Math.max(0, window.innerHeight - bounds.bottom - 8);
+        const spaceAbove = Math.max(0, bounds.top - 8);
+        const placeBelow = spaceBelow >= 80 || spaceBelow >= spaceAbove;
+        const availableHeight = placeBelow ? spaceBelow : spaceAbove;
+        const maxHeight = Math.max(0, Math.min(280, availableHeight));
+        const popupHeight = Math.min(maxHeight, results.scrollHeight);
+
+        results.style.left = `${left}px`;
+        results.style.width = `${width}px`;
+        results.style.maxHeight = `${maxHeight}px`;
+        results.style.top = placeBelow
+            ? `${bounds.bottom}px`
+            : `${Math.max(8, bounds.top - popupHeight)}px`;
+    }
+
+    function scheduleSearch(input, callback) {
+        clearTimeout(searchTimers.get(input));
+        searchTimers.set(input, setTimeout(callback, 250));
+    }
+
+    function clearProductSelection(row) {
+        row.querySelector(".product-id").value = "0";
+        row.querySelector(".location-id").value = "0";
+        const locationInput = row.querySelector(".location-search");
+        locationInput.value = "";
+        delete locationInput.dataset.locationId;
+        delete locationInput.dataset.locationCode;
+        delete locationInput.dataset.barcode;
+        row.querySelector(".product-barcode-text").textContent = "-";
+        row.querySelector(".location-barcode-text").textContent = "-";
+        row.querySelector(".system-qty").value = "0";
+        row.querySelector(".counted-qty").value = "0";
+        row.querySelector(".counted-qty").dataset.userEdited = "false";
+        calculateDifference(row);
+        hideSearchResults(row, ".location-results");
+    }
+
+    function clearLocationSelection(row) {
+        row.querySelector(".location-id").value = "0";
+        const locationInput = row.querySelector(".location-search");
+        delete locationInput.dataset.locationId;
+        delete locationInput.dataset.locationCode;
+        delete locationInput.dataset.barcode;
+        row.querySelector(".location-barcode-text").textContent = "-";
+        row.querySelector(".system-qty").value = "0";
+        row.querySelector(".counted-qty").value = "0";
+        row.querySelector(".counted-qty").dataset.userEdited = "false";
+        calculateDifference(row);
+    }
+
+    function positionVisibleResults() {
+        document.querySelectorAll(".stocktake-line .search-results").forEach(function (results) {
+            const row = results.closest(".stocktake-line");
+            const input = results.classList.contains("product-results")
+                ? row.querySelector(".product-search")
+                : row.querySelector(".location-search");
+            positionSearchResults(input, results);
+        });
+    }
+
+    window.addEventListener("scroll", positionVisibleResults, true);
+    window.addEventListener("resize", positionVisibleResults);
 
 
     function updateEmptyMessage() {
@@ -198,6 +269,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         locationInput.dataset.locationId =
             location.id;
+        locationInput.dataset.locationCode =
+            location.code;
 
         locationInput.dataset.barcode =
             location.barcode || "";
@@ -475,7 +548,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            clearTimeout(searchTimer);
+            clearProductSelection(row);
+            hideSearchResults(row, ".product-results");
 
             const keyword =
                 input.value.trim();
@@ -490,18 +564,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            searchTimer =
-                setTimeout(
-                    function () {
-
-                        searchProducts(
-                            row,
-                            keyword
-                        );
-
-                    },
-                    250
-                );
+            scheduleSearch(input, function () {
+                searchProducts(row, keyword);
+            });
         }
     );
 
@@ -536,6 +601,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const products =
                 await response.json();
 
+            if (!row.isConnected ||
+                row.querySelector(".product-search").value.trim() !== keyword) {
+                return;
+            }
+
             renderProductResults(
                 row,
                 products
@@ -554,6 +624,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.style.display =
                 "block";
+            positionSearchResults(
+                row.querySelector(".product-search"),
+                results
+            );
         }
     }
 
@@ -583,6 +657,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.style.display =
                 "block";
+            positionSearchResults(
+                row.querySelector(".product-search"),
+                results
+            );
 
             return;
         }
@@ -620,6 +698,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         results.style.display =
             "block";
+        positionSearchResults(
+            row.querySelector(".product-search"),
+            results
+        );
     }
 
 
@@ -802,6 +884,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     });
 
+                if (!exact && products.length > 1) {
+                    renderProductResults(row, products);
+                    return;
+                }
+
                 const product =
                     exact || products[0];
 
@@ -868,7 +955,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            clearTimeout(searchTimer);
+            clearLocationSelection(row);
+            hideSearchResults(row, ".location-results");
 
             const keyword =
                 input.value.trim();
@@ -883,18 +971,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            searchTimer =
-                setTimeout(
-                    function () {
-
-                        searchLocations(
-                            row,
-                            keyword
-                        );
-
-                    },
-                    250
-                );
+            scheduleSearch(input, function () {
+                searchLocations(row, keyword);
+            });
         }
     );
 
@@ -926,6 +1005,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.style.display =
                 "block";
+            positionSearchResults(
+                row.querySelector(".location-search"),
+                results
+            );
 
             return;
         }
@@ -934,7 +1017,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const response =
                 await fetch(
-                    `${locationSearchUrl}?warehouseId=${warehouseId}&keyword=${encodeURIComponent(keyword)}`
+                    `${locationSearchUrl}?warehouseId=${warehouseId}&productId=${row.querySelector(".product-id").value}&keyword=${encodeURIComponent(keyword)}`
                 );
 
             if (!response.ok) {
@@ -943,6 +1026,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const locations =
                 await response.json();
+
+            if (!row.isConnected ||
+                row.querySelector(".location-search").value.trim() !== keyword) {
+                return;
+            }
 
             renderLocationResults(
                 row,
@@ -962,6 +1050,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.style.display =
                 "block";
+            positionSearchResults(
+                row.querySelector(".location-search"),
+                results
+            );
         }
     }
 
@@ -991,6 +1083,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             results.style.display =
                 "block";
+            positionSearchResults(
+                row.querySelector(".location-search"),
+                results
+            );
 
             return;
         }
@@ -1030,6 +1126,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         results.style.display =
             "block";
+        positionSearchResults(
+            row.querySelector(".location-search"),
+            results
+        );
     }
 
 
@@ -1082,7 +1182,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const response =
                     await fetch(
-                        `${locationSearchUrl}?warehouseId=${getWarehouseId()}&keyword=${encodeURIComponent(keyword)}`
+                        `${locationSearchUrl}?warehouseId=${getWarehouseId()}&productId=${row.querySelector(".product-id").value}&keyword=${encodeURIComponent(keyword)}`
                     );
 
                 if (!response.ok) {
@@ -1191,7 +1291,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const response =
                     await fetch(
-                        `${locationSearchUrl}?warehouseId=${warehouseId}&keyword=${encodeURIComponent(keyword)}`
+                        `${locationSearchUrl}?warehouseId=${warehouseId}&productId=${row.querySelector(".product-id").value}&keyword=${encodeURIComponent(keyword)}`
                     );
 
                 if (!response.ok) {
@@ -1222,6 +1322,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     });
+
+                if (!exact && locations.length > 1) {
+                    renderLocationResults(row, locations);
+                    return;
+                }
 
                 const location =
                     exact || locations[0];
@@ -1314,10 +1419,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 ".location-search"
             );
 
-        const keyword =
-            locationInput
-                ? locationInput.value.trim()
-                : "";
+        const locationCode =
+            locationInput?.dataset.locationCode || "";
 
         const warehouseId =
             getWarehouseId();
@@ -1330,7 +1433,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const response =
                 await fetch(
-                    `${locationSearchUrl}?warehouseId=${warehouseId}&keyword=${encodeURIComponent(keyword)}`
+                    `${locationSearchUrl}?warehouseId=${warehouseId}&productId=${productId}&keyword=${encodeURIComponent(locationCode)}`
                 );
 
             if (!response.ok) {
@@ -1394,7 +1497,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (locationInput) {
                         locationInput.value = "";
-                        locationInput.dataset.locationId = "";
+                        delete locationInput.dataset.locationId;
+                        delete locationInput.dataset.locationCode;
+                        delete locationInput.dataset.barcode;
                     }
 
                     if (locationIdInput) {

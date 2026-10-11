@@ -9,6 +9,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const emptyMessage =
         document.getElementById("outboundEmptyMessage");
 
+    const form =
+        document.getElementById("outboundForm");
+
+    const productSearchUrl =
+        form?.dataset.productSearchUrl || "/Outbound/SearchProduct";
+
+    const locationSearchUrl =
+        form?.dataset.locationSearchUrl || "/Outbound/SearchLocation";
+
     if (!tableBody) {
         return;
     }
@@ -234,6 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        hideDropdowns();
         row.remove();
 
         reindexLines();
@@ -246,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // SEARCH PRODUCT
     // =========================================================
 
-    async function searchProduct(input) {
+    async function searchProduct(input, selectSingle = false) {
 
         const keyword =
             input.value.trim();
@@ -267,22 +277,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const response =
                 await fetch(
-                    "/Outbound/SearchProduct?keyword="
+                    productSearchUrl + "?keyword="
                     + encodeURIComponent(keyword)
                 );
 
             if (!response.ok) {
+                showSearchMessage(
+                    input,
+                    "Không thể tìm kiếm sản phẩm."
+                );
                 return;
             }
 
             const data =
                 await response.json();
 
-            showProductDropdown(
-                input,
-                row,
-                data
-            );
+            if (input.value.trim() !== keyword) {
+                return;
+            }
+
+            if (selectSingle && data.length === 1) {
+                selectProduct(row, data[0]);
+                hideDropdowns();
+                return;
+            }
+
+            showProductDropdown(input, row, data);
 
         }
         catch (error) {
@@ -290,6 +310,10 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error(
                 "Product search error:",
                 error
+            );
+            showSearchMessage(
+                input,
+                "Không thể tìm kiếm sản phẩm."
             );
 
         }
@@ -309,6 +333,10 @@ document.addEventListener("DOMContentLoaded", function () {
         hideDropdowns();
 
         if (!products || products.length === 0) {
+            showSearchMessage(
+                input,
+                "Không tìm thấy sản phẩm đang hoạt động phù hợp."
+            );
             return;
         }
 
@@ -444,7 +472,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // SEARCH LOCATION
     // =========================================================
 
-    async function searchLocation(input) {
+    async function searchLocation(input, selectSingle = false) {
 
         const keyword =
             input.value.trim();
@@ -475,6 +503,12 @@ document.addEventListener("DOMContentLoaded", function () {
             !productId ||
             productId === "0") {
 
+            showSearchMessage(
+                input,
+                !warehouseId
+                    ? "Vui lòng chọn kho xuất trước."
+                    : "Vui lòng chọn sản phẩm trước khi tìm Bin."
+            );
             return;
         }
 
@@ -488,7 +522,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const response =
                 await fetch(
-                    "/Outbound/SearchLocation"
+                    locationSearchUrl
                     + "?warehouseId="
                     + encodeURIComponent(warehouseId)
                     + "&productId="
@@ -498,17 +532,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
             if (!response.ok) {
+                showSearchMessage(
+                    input,
+                    "Không thể tìm kiếm Bin."
+                );
                 return;
             }
 
             const data =
                 await response.json();
 
-            showLocationDropdown(
-                input,
-                row,
-                data
-            );
+            if (input.value.trim() !== keyword) {
+                return;
+            }
+
+            if (selectSingle && data.length === 1) {
+                selectLocation(row, data[0]);
+                hideDropdowns();
+                return;
+            }
+
+            showLocationDropdown(input, row, data);
 
         }
         catch (error) {
@@ -516,6 +560,10 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error(
                 "Location search error:",
                 error
+            );
+            showSearchMessage(
+                input,
+                "Không thể tìm kiếm Bin."
             );
 
         }
@@ -535,6 +583,10 @@ document.addEventListener("DOMContentLoaded", function () {
         hideDropdowns();
 
         if (!locations || locations.length === 0) {
+            showSearchMessage(
+                input,
+                "Không có tồn kho phù hợp tại Bin trong kho đã chọn."
+            );
             return;
         }
 
@@ -700,6 +752,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    function showSearchMessage(input, message) {
+
+        hideDropdowns();
+
+        const dropdown =
+            document.createElement("div");
+
+        dropdown.className =
+            "outbound-search-dropdown";
+        dropdown.setAttribute("role", "status");
+        dropdown.innerHTML =
+            `<div class="list-group-item text-muted">${escapeHtml(message)}</div>`;
+
+        positionDropdown(input, dropdown);
+        document.body.appendChild(dropdown);
+
+    }
+
+
     // =========================================================
     // BIND ROW
     // =========================================================
@@ -735,10 +806,40 @@ document.addEventListener("DOMContentLoaded", function () {
             let timer = null;
 
             productInput.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        clearTimeout(timer);
+                        searchProduct(productInput, true);
+                    }
+
+                }
+            );
+
+            productInput.addEventListener(
                 "input",
                 function () {
 
                     clearTimeout(timer);
+                    hideDropdowns();
+
+                    row.querySelector(
+                        ".line-product-id"
+                    ).value = "0";
+                    row.querySelector(
+                        ".line-product-barcode"
+                    ).textContent = "-";
+                    row.querySelector(
+                        ".line-location-id"
+                    ).value = "0";
+                    row.querySelector(
+                        ".location-search"
+                    ).value = "";
+                    row.querySelector(
+                        ".line-bin-stock"
+                    ).textContent = "0";
 
                     timer =
                         setTimeout(
@@ -768,10 +869,31 @@ document.addEventListener("DOMContentLoaded", function () {
             let timer = null;
 
             locationInput.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        clearTimeout(timer);
+                        searchLocation(locationInput, true);
+                    }
+
+                }
+            );
+
+            locationInput.addEventListener(
                 "input",
                 function () {
 
                     clearTimeout(timer);
+                    hideDropdowns();
+
+                    row.querySelector(
+                        ".line-location-id"
+                    ).value = "0";
+                    row.querySelector(
+                        ".line-bin-stock"
+                    ).textContent = "0";
 
                     timer =
                         setTimeout(
@@ -879,6 +1001,38 @@ document.addEventListener("DOMContentLoaded", function () {
             function () {
 
                 addLine();
+
+            }
+        );
+
+    }
+
+    const warehouseSelect =
+        document.querySelector('[name="WarehouseId"]');
+
+    if (warehouseSelect) {
+
+        warehouseSelect.addEventListener(
+            "change",
+            function () {
+
+                hideDropdowns();
+
+                tableBody
+                    .querySelectorAll(".outbound-line")
+                    .forEach(function (row) {
+
+                        row.querySelector(
+                            ".line-location-id"
+                        ).value = "0";
+                        row.querySelector(
+                            ".location-search"
+                        ).value = "";
+                        row.querySelector(
+                            ".line-bin-stock"
+                        ).textContent = "0";
+
+                    });
 
             }
         );

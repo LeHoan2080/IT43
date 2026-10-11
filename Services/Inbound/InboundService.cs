@@ -265,6 +265,9 @@ public class InboundService : IInboundService
                                 LocationId =
                                     x.LocationId,
 
+                                LocationBarcode =
+                                    x.Location.Barcode,
+
                                 LocationDisplay =
                                     $"{x.Location.Code} - {x.Location.Name}",
 
@@ -279,6 +282,15 @@ public class InboundService : IInboundService
                             })
                         .ToList()
             };
+
+        model.Suppliers =
+            await GetActiveSuppliersAsync();
+
+        model.SupplierId =
+            model.Suppliers
+                .FirstOrDefault(x =>
+                    x.Name == receipt.SupplierName)
+                ?.Id;
 
         return model;
     }
@@ -306,6 +318,17 @@ public class InboundService : IInboundService
                 "Kho nhận không tồn tại hoặc không hoạt động.");
         }
 
+        var supplier =
+            await _context.Suppliers
+                .FirstOrDefaultAsync(x =>
+                    x.Id == model.SupplierId &&
+                    x.IsActive);
+
+        if (supplier == null)
+        {
+            throw new InvalidOperationException(
+                "Nhà cung cấp/NXB không tồn tại hoặc không hoạt động.");
+        }
 
         ValidateLines(model);
 
@@ -321,10 +344,7 @@ public class InboundService : IInboundService
                     receiptNo,
 
                 SupplierName =
-                    string.IsNullOrWhiteSpace(
-                        model.SupplierName)
-                        ? null
-                        : model.SupplierName.Trim(),
+                    supplier.Name,
 
                 WarehouseId =
                     model.WarehouseId,
@@ -451,12 +471,20 @@ public class InboundService : IInboundService
                 "Kho nhận không tồn tại hoặc không hoạt động.");
         }
 
+        var supplier =
+            await _context.Suppliers
+                .FirstOrDefaultAsync(x =>
+                    x.Id == model.SupplierId &&
+                    x.IsActive);
+
+        if (supplier == null)
+        {
+            throw new InvalidOperationException(
+                "Nhà cung cấp/NXB không tồn tại hoặc không hoạt động.");
+        }
 
         receipt.SupplierName =
-            string.IsNullOrWhiteSpace(
-                model.SupplierName)
-                ? null
-                : model.SupplierName.Trim();
+            supplier.Name;
 
         receipt.WarehouseId =
             model.WarehouseId;
@@ -979,6 +1007,110 @@ public class InboundService : IInboundService
                         x.Name
                 })
             .ToListAsync();
+    }
+
+
+    // =========================================================
+    // ACTIVE SUPPLIERS
+    // =========================================================
+
+    public async Task<List<InboundSupplierOptionViewModel>>
+        GetActiveSuppliersAsync()
+    {
+        return await _context.Suppliers
+            .AsNoTracking()
+            .Where(x =>
+                x.IsActive)
+            .OrderBy(x =>
+                x.Code)
+            .Select(x =>
+                new InboundSupplierOptionViewModel
+                {
+                    Id =
+                        x.Id,
+
+                    Code =
+                        x.Code,
+
+                    Name =
+                        x.Name
+                })
+            .ToListAsync();
+    }
+
+
+    public async Task PopulateInboundLineDetailsAsync(
+        InboundFormViewModel model)
+    {
+        if (model.Lines == null ||
+            model.Lines.Count == 0)
+        {
+            return;
+        }
+
+        var productIds =
+            model.Lines
+                .Where(x => x.ProductId > 0)
+                .Select(x => x.ProductId)
+                .Distinct()
+                .ToList();
+
+        var locationIds =
+            model.Lines
+                .Where(x => x.LocationId > 0)
+                .Select(x => x.LocationId)
+                .Distinct()
+                .ToList();
+
+        var products =
+            await _context.Products
+                .AsNoTracking()
+                .Where(x => productIds.Contains(x.Id))
+                .Select(x => new
+                {
+                    x.Id,
+                    x.ProductCode,
+                    x.Barcode,
+                    x.Name,
+                    x.ProductType,
+                    x.Unit,
+                    x.ISBN
+                })
+                .ToDictionaryAsync(x => x.Id);
+
+        var locations =
+            await _context.Locations
+                .AsNoTracking()
+                .Where(x => locationIds.Contains(x.Id))
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Code,
+                    x.Barcode,
+                    x.Name
+                })
+                .ToDictionaryAsync(x => x.Id);
+
+        foreach (var line in model.Lines)
+        {
+            if (products.TryGetValue(line.ProductId, out var product))
+            {
+                line.ProductDisplay =
+                    $"{product.ProductCode} - {product.Name}";
+                line.ProductBarcode =
+                    product.Barcode;
+                line.ISBN =
+                    product.ISBN;
+            }
+
+            if (locations.TryGetValue(line.LocationId, out var location))
+            {
+                line.LocationDisplay =
+                    $"{location.Code} - {location.Name}";
+                line.LocationBarcode =
+                    location.Barcode;
+            }
+        }
     }
 
 

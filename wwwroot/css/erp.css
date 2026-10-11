@@ -1043,6 +1043,10 @@ body {
     transform: translateY(1px);
 }
 
+.erp-content .erp-user-toggle-btn {
+    min-width: 76px;
+}
+
 .erp-content .btn-primary {
     border-color: var(--erp-primary);
     background: var(--erp-primary);

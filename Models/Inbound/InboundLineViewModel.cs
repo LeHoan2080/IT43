@@ -14,6 +14,8 @@ public class InboundLineViewModel
     [Display(Name = "Barcode")]
     public string? ProductBarcode { get; set; }
 
+    public string? LocationBarcode { get; set; }
+
     [Display(Name = "ISBN")]
     public string? ISBN { get; set; }
 

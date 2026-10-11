@@ -327,13 +327,15 @@ public class StocktakeController : Controller
     [HttpGet]
     public async Task<IActionResult> SearchLocation(
         long warehouseId,
-        string keyword)
+        string keyword,
+        long productId = 0)
     {
         var result =
             await _stocktakeService
                 .SearchLocationsAsync(
                     warehouseId,
-                    keyword);
+                    keyword,
+                    productId);
 
         return Json(result);
     }

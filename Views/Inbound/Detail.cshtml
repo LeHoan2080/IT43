@@ -711,17 +711,17 @@
 
                                 <th class="text-end">
 
-                                    @Model.Lines
+                                    @(Model.Lines
                                         .Sum(x => x.ExpectedQty)
-                                        .ToString("N0")
+                                        .ToString("N0"))
 
                                 </th>
 
                                 <th class="text-end">
 
-                                    @Model.Lines
+                                    @(Model.Lines
                                         .Sum(x => x.ReceivedQty)
-                                        .ToString("N0")
+                                        .ToString("N0"))
 
                                 </th>
 

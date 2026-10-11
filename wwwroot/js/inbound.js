@@ -15,6 +15,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const addLineButton =
         document.getElementById("btnAddInboundLine");
 
+    const productSearchUrl =
+        form.dataset.productSearchUrl;
+
+    const locationSearchUrl =
+        form.dataset.locationSearchUrl;
+
     let lineIndex = linesBody
         ? linesBody.querySelectorAll("tr.inbound-line").length
         : 0;
@@ -33,6 +39,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
     }
+
+    form.addEventListener("submit", renumberLines);
 
 
     function addInboundLine() {
@@ -54,6 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
                        class="product-id" />
 
                 <input type="text"
+                       name="Lines[${index}].ProductBarcode"
                        class="form-control form-control-sm product-keyword"
                        placeholder="Barcode / Mã SP / ISBN" />
 
@@ -91,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
                        class="location-id" />
 
                 <input type="text"
+                       name="Lines[${index}].LocationBarcode"
                        class="form-control form-control-sm location-keyword"
                        placeholder="Barcode / Mã Bin" />
 
@@ -132,6 +142,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function bindLineEvents(row) {
 
+        let productSearchTimer;
+        let locationSearchTimer;
+
         const productInput =
             row.querySelector(".product-keyword");
 
@@ -151,14 +164,34 @@ document.addEventListener("DOMContentLoaded", function () {
         if (productInput) {
 
             productInput.addEventListener(
+                "input",
+                function () {
+
+                    clearTimeout(productSearchTimer);
+                    hideSearchDropdown();
+                    clearProduct(row);
+
+                    productSearchTimer =
+                        setTimeout(
+                            function () {
+                                searchProduct(row);
+                            },
+                            250
+                        );
+
+                }
+            );
+
+            productInput.addEventListener(
                 "keydown",
                 function (event) {
 
                     if (event.key === "Enter") {
 
                         event.preventDefault();
+                        clearTimeout(productSearchTimer);
 
-                        searchProduct(row);
+                        searchProduct(row, true);
 
                     }
 
@@ -171,14 +204,34 @@ document.addEventListener("DOMContentLoaded", function () {
         if (locationInput) {
 
             locationInput.addEventListener(
+                "input",
+                function () {
+
+                    clearTimeout(locationSearchTimer);
+                    hideSearchDropdown();
+                    clearLocation(row);
+
+                    locationSearchTimer =
+                        setTimeout(
+                            function () {
+                                searchLocation(row);
+                            },
+                            250
+                        );
+
+                }
+            );
+
+            locationInput.addEventListener(
                 "keydown",
                 function (event) {
 
                     if (event.key === "Enter") {
 
                         event.preventDefault();
+                        clearTimeout(locationSearchTimer);
 
-                        searchLocation(row);
+                        searchLocation(row, true);
 
                     }
 
@@ -195,6 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 function () {
 
                     row.remove();
+                    renumberLines();
 
                 }
             );
@@ -240,7 +294,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // TÌM PRODUCT
     // =========================================================
 
-    async function searchProduct(row) {
+    async function searchProduct(row, selectSingle = false) {
 
         const input =
             row.querySelector(".product-keyword");
@@ -266,6 +320,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!keyword) {
 
+            hideSearchDropdown();
+
             showMessage(
                 resultBox,
                 "Vui lòng nhập Barcode, mã sản phẩm hoặc ISBN.",
@@ -287,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const response =
                 await fetch(
-                    `/Inbound/SearchProduct?keyword=${encodeURIComponent(keyword)}`
+                    `${productSearchUrl}?keyword=${encodeURIComponent(keyword)}`
                 );
 
             if (!response.ok) {
@@ -302,16 +358,27 @@ document.addEventListener("DOMContentLoaded", function () {
             const result =
                 await response.json();
 
+            if (input.value.trim() !== keyword) {
+                return;
+            }
 
-            if (!result.success ||
-                !result.data ||
-                result.data.length === 0) {
 
+            const products =
+                Array.isArray(result)
+                    ? result
+                    : result.data ?? result.Data ?? [];
+
+            if ((!Array.isArray(result) &&
+                 !(result.success ?? result.Success)) ||
+                !Array.isArray(products) ||
+                products.length === 0) {
+
+                hideSearchDropdown();
                 clearProduct(row);
 
                 showMessage(
                     resultBox,
-                    "Không tìm thấy sản phẩm",
+                    "Không tìm thấy sản phẩm đang hoạt động phù hợp.",
                     "text-danger"
                 );
 
@@ -320,11 +387,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             // Nếu tìm thấy chính xác một sản phẩm
-            if (result.data.length === 1) {
+            if (selectSingle && products.length === 1) {
 
                 selectProduct(
                     row,
-                    result.data[0]
+                    products[0]
                 );
 
                 return;
@@ -334,7 +401,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Có nhiều kết quả
             renderProductResults(
                 row,
-                result.data
+                products
             );
 
         }
@@ -358,7 +425,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const resultBox =
             row.querySelector(".product-result");
 
-        resultBox.innerHTML = "";
+        hideSearchDropdown();
+        resultBox.textContent = "";
+
+        const input =
+            row.querySelector(".product-keyword");
+
+        const dropdown =
+            createSearchDropdown(input);
 
         products.forEach(function (product) {
 
@@ -368,10 +442,10 @@ document.addEventListener("DOMContentLoaded", function () {
             button.type = "button";
 
             button.className =
-                "btn btn-sm btn-outline-secondary me-1 mb-1";
+                "list-group-item list-group-item-action";
 
             button.textContent =
-                `${product.productCode} - ${product.name}`;
+                `${product.productCode ?? product.ProductCode} - ${product.name ?? product.Name} | Barcode: ${product.barcode ?? product.Barcode ?? "-"} | ISBN: ${product.isbn ?? product.ISBN ?? "-"}`;
 
             button.addEventListener(
                 "click",
@@ -381,13 +455,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         row,
                         product
                     );
+                    hideSearchDropdown();
 
                 }
             );
 
-            resultBox.appendChild(button);
+            dropdown.appendChild(button);
 
         });
+
+        positionSearchDropdown(input, dropdown);
+        document.body.appendChild(dropdown);
 
     }
 
@@ -409,25 +487,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const resultBox =
             row.querySelector(".product-result");
 
+        hideSearchDropdown();
+
 
         productId.value =
-            product.id;
+            product.id ?? product.Id;
 
         productInput.value =
             product.barcode ||
-            product.productCode;
+            product.Barcode ||
+            product.productCode ||
+            product.ProductCode;
 
         productDisplay.textContent =
-            product.name;
+            product.name ?? product.Name;
 
         productMeta.textContent =
             [
-                product.productCode,
-                product.isbn
-                    ? `ISBN: ${product.isbn}`
+                product.productCode ?? product.ProductCode,
+                (product.isbn ?? product.ISBN)
+                    ? `ISBN: ${product.isbn ?? product.ISBN}`
                     : null,
-                product.productType,
-                product.unit
+                product.productType ?? product.ProductType,
+                product.unit ?? product.Unit
             ]
             .filter(Boolean)
             .join(" | ");
@@ -454,7 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // TÌM BIN
     // =========================================================
 
-    async function searchLocation(row) {
+    async function searchLocation(row, selectSingle = false) {
 
         const warehouseId =
             warehouseSelect
@@ -468,6 +550,8 @@ document.addEventListener("DOMContentLoaded", function () {
             row.querySelector(".location-result");
 
         if (!warehouseId) {
+
+            hideSearchDropdown();
 
             showMessage(
                 resultBox,
@@ -483,6 +567,8 @@ document.addEventListener("DOMContentLoaded", function () {
             input.value.trim();
 
         if (!keyword) {
+
+            hideSearchDropdown();
 
             showMessage(
                 resultBox,
@@ -505,7 +591,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const response =
                 await fetch(
-                    `/Inbound/SearchLocation?warehouseId=${encodeURIComponent(warehouseId)}&keyword=${encodeURIComponent(keyword)}`
+                    `${locationSearchUrl}?warehouseId=${encodeURIComponent(warehouseId)}&keyword=${encodeURIComponent(keyword)}`
                 );
 
 
@@ -521,16 +607,27 @@ document.addEventListener("DOMContentLoaded", function () {
             const result =
                 await response.json();
 
+            if (input.value.trim() !== keyword) {
+                return;
+            }
 
-            if (!result.success ||
-                !result.data ||
-                result.data.length === 0) {
 
+            const locations =
+                Array.isArray(result)
+                    ? result
+                    : result.data ?? result.Data ?? [];
+
+            if ((!Array.isArray(result) &&
+                 !(result.success ?? result.Success)) ||
+                !Array.isArray(locations) ||
+                locations.length === 0) {
+
+                hideSearchDropdown();
                 clearLocation(row);
 
                 showMessage(
                     resultBox,
-                    "Không tìm thấy vị trí",
+                    "Không tìm thấy Bin đang hoạt động phù hợp trong kho đã chọn.",
                     "text-danger"
                 );
 
@@ -538,11 +635,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
-            if (result.data.length === 1) {
+            if (selectSingle && locations.length === 1) {
 
                 selectLocation(
                     row,
-                    result.data[0]
+                    locations[0]
                 );
 
                 return;
@@ -551,7 +648,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             renderLocationResults(
                 row,
-                result.data
+                locations
             );
 
         }
@@ -575,7 +672,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const resultBox =
             row.querySelector(".location-result");
 
-        resultBox.innerHTML = "";
+        hideSearchDropdown();
+        resultBox.textContent = "";
+
+        const input =
+            row.querySelector(".location-keyword");
+
+        const dropdown =
+            createSearchDropdown(input);
 
         locations.forEach(function (location) {
 
@@ -585,10 +689,10 @@ document.addEventListener("DOMContentLoaded", function () {
             button.type = "button";
 
             button.className =
-                "btn btn-sm btn-outline-secondary me-1 mb-1";
+                "list-group-item list-group-item-action";
 
             button.textContent =
-                `${location.code} - ${location.name}`;
+                `${location.code ?? location.Code} - ${location.name ?? location.Name} | Barcode: ${location.barcode ?? location.Barcode ?? "-"}`;
 
             button.addEventListener(
                 "click",
@@ -598,13 +702,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         row,
                         location
                     );
+                    hideSearchDropdown();
 
                 }
             );
 
-            resultBox.appendChild(button);
+            dropdown.appendChild(button);
 
         });
+
+        positionSearchDropdown(input, dropdown);
+        document.body.appendChild(dropdown);
 
     }
 
@@ -623,16 +731,20 @@ document.addEventListener("DOMContentLoaded", function () {
         const resultBox =
             row.querySelector(".location-result");
 
+        hideSearchDropdown();
+
 
         locationId.value =
-            location.id;
+            location.id ?? location.Id;
 
         locationInput.value =
             location.barcode ||
-            location.code;
+            location.Barcode ||
+            location.code ||
+            location.Code;
 
         locationDisplay.value =
-            `${location.code} - ${location.name}`;
+            `${location.code ?? location.Code} - ${location.name ?? location.Name}`;
 
         resultBox.innerHTML = "";
 
@@ -644,6 +756,76 @@ document.addEventListener("DOMContentLoaded", function () {
         row.querySelector(".location-id").value = "";
 
         row.querySelector(".location-display").value = "";
+
+    }
+
+
+    function createSearchDropdown(input) {
+
+        const dropdown =
+            document.createElement("div");
+
+        dropdown.className =
+            "inbound-search-dropdown";
+
+        positionSearchDropdown(input, dropdown);
+
+        return dropdown;
+
+    }
+
+
+    function positionSearchDropdown(input, dropdown) {
+
+        const rect =
+            input.getBoundingClientRect();
+
+        dropdown.style.position =
+            "absolute";
+        dropdown.style.zIndex =
+            "9999";
+        dropdown.style.width =
+            `${input.offsetWidth}px`;
+        dropdown.style.left =
+            `${rect.left + window.scrollX}px`;
+        dropdown.style.top =
+            `${rect.bottom + window.scrollY}px`;
+
+    }
+
+
+    function hideSearchDropdown() {
+
+        document
+            .querySelectorAll(".inbound-search-dropdown")
+            .forEach(function (dropdown) {
+                dropdown.remove();
+            });
+
+    }
+
+
+    if (warehouseSelect) {
+
+        warehouseSelect.addEventListener(
+            "change",
+            function () {
+
+                hideSearchDropdown();
+
+                if (linesBody) {
+                    linesBody
+                        .querySelectorAll("tr.inbound-line")
+                        .forEach(function (row) {
+                            clearLocation(row);
+                            row.querySelector(
+                                ".location-keyword"
+                            ).value = "";
+                        });
+                }
+
+            }
+        );
 
     }
 
@@ -676,11 +858,73 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        const resultType =
+            element.classList.contains("product-result")
+                ? "product-result"
+                : element.classList.contains("location-result")
+                    ? "location-result"
+                    : "";
+
         element.className =
-            `small mt-1 ${cssClass}`;
+            `${resultType} small mt-1 ${cssClass}`.trim();
 
         element.textContent =
             message;
+
+    }
+
+
+    function renumberLines() {
+
+        if (!linesBody) {
+            return;
+        }
+
+        linesBody
+            .querySelectorAll("tr.inbound-line")
+            .forEach(function (row, index) {
+
+                row
+                    .querySelectorAll("[name], [id], [data-valmsg-for]")
+                    .forEach(function (element) {
+
+                        ["name", "data-valmsg-for"].forEach(function (attribute) {
+
+                            const value =
+                                element.getAttribute(attribute);
+
+                            if (value) {
+
+                                element.setAttribute(
+                                    attribute,
+                                    value.replace(
+                                        /Lines\[\d+\]/g,
+                                        `Lines[${index}]`
+                                    )
+                                );
+
+                            }
+
+                        });
+
+                        const id =
+                            element.getAttribute("id");
+
+                        if (id) {
+
+                            element.id = id.replace(
+                                /Lines_(\d+)__/g,
+                                `Lines_${index}__`
+                            );
+
+                        }
+
+                    });
+
+            });
+
+        lineIndex =
+            linesBody.querySelectorAll("tr.inbound-line").length;
 
     }
 

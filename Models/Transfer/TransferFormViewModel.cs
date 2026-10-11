@@ -4,8 +4,7 @@ public class TransferFormViewModel
 {
     public long Id { get; set; }
 
-    public string TransferNo { get; set; }
-        = string.Empty;
+    public string? TransferNo { get; set; }
 
     public long SourceWarehouseId { get; set; }
 

@@ -36,5 +36,6 @@ public interface IStocktakeService
     Task<List<StocktakeLocationSearchViewModel>>
         SearchLocationsAsync(
             long warehouseId,
-            string keyword);
+            string keyword,
+            long productId = 0);
 }

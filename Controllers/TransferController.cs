@@ -37,7 +37,7 @@ public class TransferController : Controller
         }
         catch (Exception ex)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 ex.Message;
 
             return View(
@@ -126,7 +126,7 @@ public class TransferController : Controller
                     currentUserId);
 
 
-            TempData["Success"] =
+            TempData["SuccessMessage"] =
                 "Tạo phiếu điều chuyển thành công.";
 
 
@@ -188,7 +188,7 @@ public class TransferController : Controller
 
         if (model == null)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "Không tìm thấy phiếu điều chuyển.";
 
             return RedirectToAction(
@@ -198,7 +198,7 @@ public class TransferController : Controller
 
         if (model.Status == "DONE")
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "Phiếu đã hoàn tất, không thể sửa.";
 
             return RedirectToAction(
@@ -209,7 +209,7 @@ public class TransferController : Controller
 
         if (model.Status == "CANCELLED")
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "Phiếu đã hủy, không thể sửa.";
 
             return RedirectToAction(
@@ -251,7 +251,7 @@ public class TransferController : Controller
                 .UpdateTransferAsync(model);
 
 
-            TempData["Success"] =
+            TempData["SuccessMessage"] =
                 "Cập nhật phiếu điều chuyển thành công.";
 
 
@@ -305,7 +305,7 @@ public class TransferController : Controller
 
         if (model == null)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "Không tìm thấy phiếu điều chuyển.";
 
             return RedirectToAction(
@@ -342,7 +342,7 @@ public class TransferController : Controller
                     currentUserId);
 
 
-            TempData["Success"] =
+            TempData["SuccessMessage"] =
                 "Hoàn tất phiếu điều chuyển thành công.";
 
 
@@ -352,7 +352,7 @@ public class TransferController : Controller
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 ex.Message;
 
             return RedirectToAction(
@@ -361,7 +361,7 @@ public class TransferController : Controller
         }
         catch (Exception ex)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "Có lỗi xảy ra khi hoàn tất phiếu: "
                 + ex.Message;
 
@@ -391,7 +391,7 @@ public class TransferController : Controller
                 .CancelTransferAsync(id);
 
 
-            TempData["Success"] =
+            TempData["SuccessMessage"] =
                 "Hủy phiếu điều chuyển thành công.";
 
 
@@ -401,7 +401,7 @@ public class TransferController : Controller
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 ex.Message;
 
             return RedirectToAction(
@@ -410,7 +410,7 @@ public class TransferController : Controller
         }
         catch (Exception ex)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "Có lỗi xảy ra khi hủy phiếu: "
                 + ex.Message;
 

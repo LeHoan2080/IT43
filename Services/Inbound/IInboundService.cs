@@ -30,6 +30,10 @@ public interface IInboundService
 
     Task<List<InboundWarehouseOptionViewModel>> GetActiveWarehousesAsync();
 
+    Task<List<InboundSupplierOptionViewModel>> GetActiveSuppliersAsync();
+
+    Task PopulateInboundLineDetailsAsync(InboundFormViewModel model);
+
     Task<List<InboundProductSearchViewModel>> SearchProductsAsync(string keyword);
 
     Task<List<InboundLocationSearchViewModel>> SearchLocationsAsync(

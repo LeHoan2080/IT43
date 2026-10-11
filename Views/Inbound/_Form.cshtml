@@ -6,15 +6,14 @@
 
 <form asp-action="@(isEdit ? "Edit" : "Create")"
       method="post"
-      id="inboundForm">
+      id="inboundForm"
+      data-product-search-url="@Url.Action("SearchProduct", "Inbound")"
+      data-location-search-url="@Url.Action("SearchLocation", "Inbound")">
 
     @Html.AntiForgeryToken()
 
     <input type="hidden"
            asp-for="Id" />
-
-    <input type="hidden"
-           asp-for="ReceiptNo" />
 
     <input type="hidden"
            asp-for="Status" />
@@ -73,11 +72,23 @@
                         <span class="text-danger">*</span>
                     </label>
 
-                    <input asp-for="SupplierName"
-                           class="form-control"
-                           placeholder="Nhập nhà cung cấp hoặc NXB..." />
+                    <select asp-for="SupplierId"
+                            class="form-select">
 
-                    <span asp-validation-for="SupplierName"
+                        <option value="">
+                            -- Chọn nhà cung cấp/NXB --
+                        </option>
+
+                        @foreach (var supplier in Model.Suppliers)
+                        {
+                            <option value="@supplier.Id">
+                                @supplier.Code - @supplier.Name
+                            </option>
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="SupplierId"
                           class="text-danger small">
                     </span>
 
@@ -287,6 +298,7 @@
 
                                         <input type="text"
                                                class="form-control form-control-sm product-keyword"
+                                               name="Lines[@i].ProductBarcode"
                                                value="@Model.Lines[i].ProductBarcode"
                                                placeholder="Barcode / Mã SP / ISBN"
                                                autocomplete="off" />
@@ -393,6 +405,8 @@
 
                                         <input type="text"
                                                class="form-control form-control-sm location-keyword"
+                                               name="Lines[@i].LocationBarcode"
+                                               value="@Model.Lines[i].LocationBarcode"
                                                placeholder="Barcode / Mã Bin"
                                                autocomplete="off" />
 
@@ -557,5 +571,3 @@
     </div>
 
 </form>
-
-

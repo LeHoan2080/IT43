@@ -6,12 +6,18 @@ public class InboundFormViewModel
 {
     public long Id { get; set; }
 
-    public string ReceiptNo { get; set; } = string.Empty;
+    public string? ReceiptNo { get; set; }
 
     [Required(
-        ErrorMessage = "Vui lòng nhập nhà cung cấp/NXB.")]
-    [StringLength(150)]
+        ErrorMessage = "Vui lòng chọn nhà cung cấp/NXB.")]
+    [Range(
+        1,
+        long.MaxValue,
+        ErrorMessage = "Nhà cung cấp/NXB không hợp lệ.")]
     [Display(Name = "Nhà cung cấp/NXB")]
+    public long? SupplierId { get; set; }
+
+    [StringLength(150)]
     public string? SupplierName { get; set; }
 
     [Required(
@@ -39,5 +45,8 @@ public class InboundFormViewModel
         = new();
 
     public List<InboundWarehouseOptionViewModel> Warehouses { get; set; }
+        = new();
+
+    public List<InboundSupplierOptionViewModel> Suppliers { get; set; }
         = new();
 }
