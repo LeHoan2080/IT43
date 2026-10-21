@@ -2,8 +2,7 @@
 
 ASP.NET Core MVC application for a stationery warehouse.
 
-For end-user workflows and a module-by-module test checklist, see
-[HUONG_DAN_SU_DUNG_VA_KIEM_THU.md](HUONG_DAN_SU_DUNG_VA_KIEM_THU.md).
+For end-user workflows and a module-by-module test checklist
 
 ## Run locally
 
@@ -17,5 +16,3 @@ For end-user workflows and a module-by-module test checklist, see
    dotnet build
    dotnet run
    ```
-
-The application does not create or seed the database at startup. It checks database connectivity and required role data, then starts. For module workflows and test cases, see [HUONG_DAN_SU_DUNG_VA_KIEM_THU.md](HUONG_DAN_SU_DUNG_VA_KIEM_THU.md).
