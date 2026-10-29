@@ -15,7 +15,42 @@
     </div>
 </div>
 
-<div class="card shadow-sm mb-3">
+<div class="row g-3 mb-3 report-overview">
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Sản phẩm trong kết quả</div>
+                <div class="h4 mb-0">@Model.Filter.TotalItems</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Có tồn trong phạm vi</div>
+                <div class="h4 mb-0">@Model.InStockProducts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Dưới Min Stock</div>
+                <div class="h4 mb-0">@Model.LowStockProducts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Không có tồn trong phạm vi</div>
+                <div class="h4 mb-0">@(Model.Filter.TotalItems - Model.InStockProducts)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3 report-controls">
     <div class="card-body">
 
         <form method="get"
@@ -106,14 +141,20 @@
                 <!-- Location -->
                 <div class="col-md-4">
                     <label class="form-label">
-                        ID vị trí (Bin)
+                        Vị trí (Bin)
                     </label>
 
-                    <input type="text"
-                           name="LocationId"
-                           value="@filter.LocationId"
-                           class="form-control"
-                           placeholder="Nhập ID vị trí..." />
+                    <select name="LocationId"
+                            class="form-select">
+                        <option value="">Tất cả vị trí</option>
+                        @foreach (var location in Model.Locations)
+                        {
+                            <option value="@location.Id"
+                                    selected="@(filter.LocationId == location.Id.ToString())">
+                                @location.Label
+                            </option>
+                        }
+                    </select>
                 </div>
 
                 <!-- Low stock -->
@@ -137,7 +178,7 @@
 
             </div>
 
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex gap-2 mt-3 report-actions">
 
                 <button type="submit"
                         class="btn btn-primary">
@@ -150,12 +191,20 @@
                     Xóa bộ lọc
                 </a>
 
+                <button type="submit"
+                        formmethod="get"
+                        formaction="@Url.Action("ExportPdf", "Inventory")"
+                        class="btn btn-outline-primary">
+                    Xuất PDF
+                </button>
+
             </div>
 
         </form>
 
     </div>
 </div>
+
 
 <div class="card shadow-sm">
 
@@ -195,8 +244,13 @@
                     </th>
 
                     <th class="text-end"
-                        style="width: 110px;">
-                        Tổng tồn
+                        style="width: 130px;">
+                        Tồn toàn hệ thống
+                    </th>
+
+                    <th class="text-end"
+                        style="width: 130px;">
+                        Tồn theo phạm vi
                     </th>
 
                     <th class="text-end"
@@ -270,6 +324,10 @@
                                 @item.TotalQuantity
                             </td>
 
+                            <td class="text-end fw-semibold">
+                                @item.ScopedQuantity
+                            </td>
+
                             <td class="text-end">
                                 @item.MinStock
                             </td>
@@ -310,7 +368,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8"
+                        <td colspan="9"
                             class="text-center py-5">
 
                             <div class="text-muted">

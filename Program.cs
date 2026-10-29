@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using System.Text;
 
 using StationeryWarehouse.Data;
@@ -19,6 +20,8 @@ using StationeryWarehouse.Services.Product;
 using StationeryWarehouse.Services.Supplier;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 
 // ============================================================
@@ -221,6 +224,11 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IInventoryService,
     InventoryService
+>();
+
+builder.Services.AddScoped<
+    IInventoryPdfService,
+    InventoryPdfService
 >();
 
 

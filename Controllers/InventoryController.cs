@@ -9,11 +9,14 @@ namespace StationeryWarehouse.Controllers;
 public class InventoryController : Controller
 {
     private readonly IInventoryService _inventoryService;
+    private readonly IInventoryPdfService _inventoryPdfService;
 
     public InventoryController(
-        IInventoryService inventoryService)
+        IInventoryService inventoryService,
+        IInventoryPdfService inventoryPdfService)
     {
         _inventoryService = inventoryService;
+        _inventoryPdfService = inventoryPdfService;
     }
 
     [HttpGet]
@@ -38,6 +41,22 @@ public class InventoryController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> ExportPdf(
+        InventoryFilterViewModel filter)
+    {
+        filter.Page = 1;
+
+        var model =
+            await _inventoryService
+                .GetInventoryAsync(filter, includeAllResults: true);
+
+        var pdf = _inventoryPdfService.GenerateInventoryPdf(model);
+        var fileName = $"inventory-report-{DateTime.UtcNow:yyyyMMdd-HHmmss}.pdf";
+
+        return File(pdf, "application/pdf", fileName);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Detail(long id)
     {
         var product =
@@ -53,5 +72,34 @@ public class InventoryController : Controller
             product.ProductName;
 
         return View(product);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Movements(
+        InventoryMovementFilterViewModel filter)
+    {
+        var model =
+            await _inventoryService
+                .GetMovementReportAsync(filter);
+
+        ViewData["Title"] = "Dịch chuyển tồn kho";
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportMovementsPdf(
+        InventoryMovementFilterViewModel filter)
+    {
+        filter.Page = 1;
+
+        var model =
+            await _inventoryService
+                .GetMovementReportAsync(filter, includeAllResults: true);
+
+        var pdf = _inventoryPdfService.GenerateMovementPdf(model);
+        var fileName = $"inventory-movements-{DateTime.UtcNow:yyyyMMdd-HHmmss}.pdf";
+
+        return File(pdf, "application/pdf", fileName);
     }
 }

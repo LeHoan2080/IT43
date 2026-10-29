@@ -1,0 +1,240 @@
+@model StationeryWarehouse.Models.Inventory.InventoryMovementReportViewModel
+
+@{
+    ViewData["Title"] = "Dịch chuyển tồn kho";
+
+    var filter = Model.Filter;
+}
+
+<div class="page-header mb-3">
+    <div>
+        <h1 class="h4 mb-1">Dịch chuyển tồn kho</h1>
+        <div class="text-muted">
+            Nhật ký nhập, xuất, điều chuyển và điều chỉnh tồn
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3 report-overview">
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Tổng lượt biến động</div>
+                <div class="h4 mb-0">@filter.TotalItems</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Nhập / chuyển đến</div>
+                <div class="h4 mb-0">@Model.InboundMovementCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Xuất / chuyển đi</div>
+                <div class="h4 mb-0">@Model.OutboundMovementCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card report-kpi h-100">
+            <div class="card-body">
+                <div class="text-muted small">Điều chỉnh</div>
+                <div class="h4 mb-0">@Model.AdjustmentMovementCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3 report-controls">
+    <div class="card-body">
+        <form method="get"
+              asp-controller="Inventory"
+              asp-action="Movements">
+            <input type="hidden" name="Page" value="1" />
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="Keyword">Tìm kiếm</label>
+                    <input id="Keyword"
+                           name="Keyword"
+                           value="@filter.Keyword"
+                           class="form-control"
+                           placeholder="Mã/tên sản phẩm hoặc số chứng từ" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label" for="FromDate">Từ ngày</label>
+                    <input id="FromDate"
+                           name="FromDate"
+                           type="date"
+                           value="@(filter.FromDate?.ToString("yyyy-MM-dd"))"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label" for="ToDate">Đến ngày</label>
+                    <input id="ToDate"
+                           name="ToDate"
+                           type="date"
+                           value="@(filter.ToDate?.ToString("yyyy-MM-dd"))"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label" for="MovementType">Loại biến động</label>
+                    <select id="MovementType"
+                            name="MovementType"
+                            class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="IN" selected="@(filter.MovementType == "IN")">Nhập kho</option>
+                        <option value="OUT" selected="@(filter.MovementType == "OUT")">Xuất kho</option>
+                        <option value="TRANSFER_OUT" selected="@(filter.MovementType == "TRANSFER_OUT")">Điều chuyển đi</option>
+                        <option value="TRANSFER_IN" selected="@(filter.MovementType == "TRANSFER_IN")">Điều chuyển đến</option>
+                        <option value="ADJUSTMENT" selected="@(filter.MovementType == "ADJUSTMENT")">Điều chỉnh</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label" for="WarehouseId">Kho</label>
+                    <select id="WarehouseId"
+                            name="WarehouseId"
+                            class="form-select">
+                        <option value="">Tất cả kho</option>
+                        @foreach (var warehouse in Model.Warehouses)
+                        {
+                            <option value="@warehouse.Id"
+                                    selected="@(filter.WarehouseId == warehouse.Id)">
+                                @warehouse.Code - @warehouse.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="LocationId">Vị trí (Bin)</label>
+                    <select id="LocationId"
+                            name="LocationId"
+                            class="form-select">
+                        <option value="">Tất cả vị trí</option>
+                        @foreach (var location in Model.Locations)
+                        {
+                            <option value="@location.Id"
+                                    selected="@(filter.LocationId == location.Id)">
+                                @location.Label
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3 report-actions">
+                <button type="submit" class="btn btn-primary">Lọc</button>
+                <a asp-controller="Inventory"
+                   asp-action="Movements"
+                   class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                <button type="submit"
+                        formmethod="get"
+                        formaction="@Url.Action("ExportMovementsPdf", "Inventory")"
+                        class="btn btn-outline-primary">
+                    Xuất PDF
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <strong>Nhật ký biến động</strong>
+        <span class="text-muted small">@filter.TotalItems bản ghi</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Thời điểm</th>
+                    <th>Sản phẩm</th>
+                    <th>Loại</th>
+                    <th class="text-end">Thay đổi</th>
+                    <th>Kho / Bin</th>
+                    <th>Chứng từ</th>
+                    <th>Người thực hiện</th>
+                    <th>Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            Không có biến động phù hợp.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        var movementLabel = item.MovementType switch
+                        {
+                            "IN" => "Nhập kho",
+                            "OUT" => "Xuất kho",
+                            "TRANSFER_OUT" => "Điều chuyển đi",
+                            "TRANSFER_IN" => "Điều chuyển đến",
+                            "ADJUSTMENT" => "Điều chỉnh",
+                            _ => item.MovementType
+                        };
+
+                        <tr>
+                            <td class="text-nowrap">
+                                @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@item.ProductName</div>
+                                <div class="small text-muted">@item.ProductCode</div>
+                            </td>
+                            <td>@movementLabel</td>
+                            <td class="text-end fw-semibold">
+                                @if (item.QuantityDelta.HasValue)
+                                {
+                                    var deltaClass = item.QuantityDelta > 0
+                                        ? "text-success"
+                                        : item.QuantityDelta < 0
+                                            ? "text-danger"
+                                            : "text-muted";
+
+                                    <span class="@deltaClass">
+                                        @item.QuantityDelta.Value.ToString("+0;-0;0") @item.Unit
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted" title="Không xác định được chiều điều chỉnh">
+                                        @item.Quantity @item.Unit
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                @item.WarehouseCode / @item.LocationCode
+                            </td>
+                            <td>@(item.ReferenceNo ?? "-")</td>
+                            <td>@item.UserName</td>
+                            <td>@(item.Note ?? "-")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer bg-white">
+        <partial name="_Pagination" model="new StationeryWarehouse.Models.Common.PaginationViewModel { Page = filter.Page, PageSize = filter.PageSize, TotalItems = filter.TotalItems }" />
+    </div>
+</div>

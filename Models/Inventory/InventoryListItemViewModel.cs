@@ -18,6 +18,8 @@ public class InventoryListItemViewModel
 
     public int TotalQuantity { get; set; }
 
+    public int ScopedQuantity { get; set; }
+
     public decimal MinStock { get; set; }
 
     public bool IsLowStock =>

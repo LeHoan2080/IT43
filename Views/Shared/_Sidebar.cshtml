@@ -1,5 +1,6 @@
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 }
 
 <aside class="erp-sidebar" id="erpSidebar">
@@ -34,13 +35,26 @@
 
             <a asp-controller="Inventory"
                asp-action="Index"
-               class="erp-menu-item @(currentController == "Inventory" ? "active" : "")"
-               aria-current="@(currentController == "Inventory" ? "page" : null)">
+                    class="erp-menu-item @(currentController == "Inventory" && currentAction != "Movements" ? "active" : "")"
+                    aria-current="@(currentController == "Inventory" && currentAction != "Movements" ? "page" : null)">
 
                 <span class="erp-menu-icon">▦</span>
 
                 <span class="erp-menu-text">
                     Tồn kho
+                </span>
+
+            </a>
+
+            <a asp-controller="Inventory"
+               asp-action="Movements"
+               class="erp-menu-item @(currentController == "Inventory" && currentAction == "Movements" ? "active" : "")"
+               aria-current="@(currentController == "Inventory" && currentAction == "Movements" ? "page" : null)">
+
+                <span class="erp-menu-icon">↕</span>
+
+                <span class="erp-menu-text">
+                    Dịch chuyển tồn kho
                 </span>
 
             </a>

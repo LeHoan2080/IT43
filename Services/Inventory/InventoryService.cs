@@ -6,6 +6,15 @@ namespace StationeryWarehouse.Services.Inventory;
 
 public class InventoryService : IInventoryService
 {
+    private static readonly string[] SupportedMovementTypes =
+    {
+        "IN",
+        "OUT",
+        "TRANSFER_OUT",
+        "TRANSFER_IN",
+        "ADJUSTMENT"
+    };
+
     private readonly AppDbContext _context;
 
     public InventoryService(AppDbContext context)
@@ -15,7 +24,8 @@ public class InventoryService : IInventoryService
 
     public async Task<InventoryIndexViewModel>
         GetInventoryAsync(
-            InventoryFilterViewModel filter)
+            InventoryFilterViewModel filter,
+            bool includeAllResults = false)
     {
         // --------------------------------------------------
         // 1. Chuẩn hóa phân trang
@@ -28,6 +38,16 @@ public class InventoryService : IInventoryService
 
         // Luôn cố định 20 dòng / trang
         filter.PageSize = StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
+
+        long? selectedWarehouseId =
+            long.TryParse(filter.WarehouseId, out var parsedWarehouseId)
+                ? parsedWarehouseId
+                : null;
+
+        long? selectedLocationId =
+            long.TryParse(filter.LocationId, out var parsedLocationId)
+                ? parsedLocationId
+                : null;
 
         // --------------------------------------------------
         // 2. Query Product
@@ -151,6 +171,28 @@ public class InventoryService : IInventoryService
 
         filter.TotalItems = totalItems;
 
+        var lowStockProducts =
+            await query.CountAsync(product =>
+                ((_context.InventoryBalances
+                    .Where(balance =>
+                        balance.ProductId == product.Id)
+                    .Sum(balance => (int?)balance.Quantity) ?? 0)
+                < product.MinStock));
+
+        var inStockProducts =
+            await query.CountAsync(product =>
+                _context.InventoryBalances.Any(balance =>
+                    balance.ProductId == product.Id &&
+                    balance.Quantity > 0 &&
+                    (!selectedWarehouseId.HasValue ||
+                     balance.Location.WarehouseId == selectedWarehouseId.Value) &&
+                    (!selectedLocationId.HasValue ||
+                     balance.LocationId == selectedLocationId.Value)));
+
+        filter.PageSize = includeAllResults
+            ? Math.Max(filter.TotalItems, 1)
+            : StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
+
         // --------------------------------------------------
         // 10. Nếu page hiện tại vượt quá tổng số trang
         // --------------------------------------------------
@@ -208,6 +250,19 @@ public class InventoryService : IInventoryService
                                 (int?)balance.Quantity)
                             ?? 0,
 
+                    ScopedQuantity =
+                        _context.InventoryBalances
+                            .Where(balance =>
+                                balance.ProductId ==
+                                    product.Id &&
+                                (!selectedWarehouseId.HasValue ||
+                                 balance.Location.WarehouseId == selectedWarehouseId.Value) &&
+                                (!selectedLocationId.HasValue ||
+                                 balance.LocationId == selectedLocationId.Value))
+                            .Sum(balance =>
+                                (int?)balance.Quantity)
+                            ?? 0,
+
                     MinStock =
                         product.MinStock,
 
@@ -218,7 +273,11 @@ public class InventoryService : IInventoryService
                                 .Where(balance =>
                                     balance.ProductId ==
                                         product.Id &&
-                                    balance.Quantity > 0)
+                                    balance.Quantity > 0 &&
+                                    (!selectedWarehouseId.HasValue ||
+                                     balance.Location.WarehouseId == selectedWarehouseId.Value) &&
+                                    (!selectedLocationId.HasValue ||
+                                     balance.LocationId == selectedLocationId.Value))
                                 .Select(balance =>
                                     balance.Location.Code)
                                 .Distinct()
@@ -238,6 +297,21 @@ public class InventoryService : IInventoryService
                 })
                 .ToListAsync();
 
+        var locations =
+            await _context.Locations
+                .AsNoTracking()
+                .Where(x => x.LocationType == "BIN")
+                .OrderBy(x => x.Warehouse.Code)
+                .ThenBy(x => x.Code)
+                .Select(x => new InventoryLocationOptionViewModel
+                {
+                    Id = x.Id,
+                    WarehouseCode = x.Warehouse.Code,
+                    LocationCode = x.Code,
+                    Name = x.Name
+                })
+                .ToListAsync();
+
         // --------------------------------------------------
         // 12. Trả ViewModel
         // --------------------------------------------------
@@ -246,7 +320,10 @@ public class InventoryService : IInventoryService
         {
             Items = items,
             Filter = filter,
-            Warehouses = warehouses
+            Warehouses = warehouses,
+            Locations = locations,
+            InStockProducts = inStockProducts,
+            LowStockProducts = lowStockProducts
         };
     }
 
@@ -425,4 +502,183 @@ public class InventoryService : IInventoryService
                 })
             .ToListAsync();
     }
+
+        public async Task<InventoryMovementReportViewModel>
+            GetMovementReportAsync(
+                InventoryMovementFilterViewModel filter,
+                bool includeAllResults = false)
+        {
+            if (filter.Page < 1)
+            {
+                filter.Page = 1;
+            }
+
+            filter.PageSize =
+                StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
+
+            if (!SupportedMovementTypes.Contains(filter.MovementType))
+            {
+                filter.MovementType = null;
+            }
+
+            var query =
+                _context.StockMovements
+                    .AsNoTracking()
+                    .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.Keyword))
+            {
+                var keyword = filter.Keyword.Trim();
+
+                query = query.Where(x =>
+                    x.Product.ProductCode.Contains(keyword) ||
+                    x.Product.Name.Contains(keyword) ||
+                    (x.Product.Barcode != null &&
+                     x.Product.Barcode.Contains(keyword)) ||
+                    (x.Product.ISBN != null &&
+                     x.Product.ISBN.Contains(keyword)) ||
+                    (x.ReferenceNo != null &&
+                     x.ReferenceNo.Contains(keyword)));
+            }
+
+            if (filter.FromDate.HasValue)
+            {
+                var fromDate = filter.FromDate.Value.Date;
+                query = query.Where(x => x.CreatedAt >= fromDate);
+            }
+
+            if (filter.ToDate.HasValue)
+            {
+                var toDateExclusive = filter.ToDate.Value.Date.AddDays(1);
+                query = query.Where(x => x.CreatedAt < toDateExclusive);
+            }
+
+            if (filter.WarehouseId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.Location.WarehouseId == filter.WarehouseId.Value);
+            }
+
+            if (filter.LocationId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.LocationId == filter.LocationId.Value);
+            }
+
+            if (filter.MovementType != null)
+            {
+                query = query.Where(x =>
+                    x.MovementType == filter.MovementType);
+            }
+
+            filter.TotalItems = await query.CountAsync();
+
+            var inboundMovementCount =
+                await query.CountAsync(x =>
+                    x.MovementType == "IN" ||
+                    x.MovementType == "TRANSFER_IN");
+
+            var outboundMovementCount =
+                await query.CountAsync(x =>
+                    x.MovementType == "OUT" ||
+                    x.MovementType == "TRANSFER_OUT");
+
+            var adjustmentMovementCount =
+                await query.CountAsync(x =>
+                    x.MovementType == "ADJUSTMENT");
+
+            filter.PageSize = includeAllResults
+                ? Math.Max(filter.TotalItems, 1)
+                : StationeryWarehouse.Models.Common.PaginationViewModel.DefaultPageSize;
+
+            if (filter.TotalPages == 0)
+            {
+                filter.Page = 1;
+            }
+            else if (filter.Page > filter.TotalPages)
+            {
+                filter.Page = filter.TotalPages;
+            }
+
+            var items =
+                await query
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ThenByDescending(x => x.Id)
+                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .Select(x => new InventoryMovementListItemViewModel
+                    {
+                        Id = x.Id,
+                        CreatedAt = x.CreatedAt,
+                        ProductCode = x.Product.ProductCode,
+                        ProductName = x.Product.Name,
+                        Unit = x.Product.Unit,
+                        MovementType = x.MovementType,
+                        Quantity = x.Quantity,
+                        AdjustmentDifference = x.MovementType == "ADJUSTMENT"
+                            ? _context.StocktakeLines
+                                .Where(line =>
+                                    line.StocktakeId == x.ReferenceId &&
+                                    line.ProductId == x.ProductId &&
+                                    line.LocationId == x.LocationId)
+                                .Select(line => (int?)line.DifferenceQty)
+                                .FirstOrDefault()
+                            : null,
+                        ReferenceNo = x.ReferenceNo,
+                        WarehouseCode = x.Location.Warehouse.Code,
+                        LocationCode = x.Location.Code,
+                        UserName = x.User.Username,
+                        Note = x.Note
+                    })
+                    .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.QuantityDelta = item.MovementType switch
+                {
+                    "IN" or "TRANSFER_IN" => item.Quantity,
+                    "OUT" or "TRANSFER_OUT" => -item.Quantity,
+                    "ADJUSTMENT" => item.AdjustmentDifference,
+                    _ => null
+                };
+            }
+
+            var warehouses =
+                await _context.Warehouses
+                    .AsNoTracking()
+                    .OrderBy(x => x.Code)
+                    .Select(x => new InventoryWarehouseOptionViewModel
+                    {
+                        Id = x.Id,
+                        Code = x.Code,
+                        Name = x.Name
+                    })
+                    .ToListAsync();
+
+            var locations =
+                await _context.Locations
+                    .AsNoTracking()
+                    .Where(x => x.LocationType == "BIN")
+                    .OrderBy(x => x.Warehouse.Code)
+                    .ThenBy(x => x.Code)
+                    .Select(x => new InventoryLocationOptionViewModel
+                    {
+                        Id = x.Id,
+                        WarehouseCode = x.Warehouse.Code,
+                        LocationCode = x.Code,
+                        Name = x.Name
+                    })
+                    .ToListAsync();
+
+            return new InventoryMovementReportViewModel
+            {
+                Filter = filter,
+                Items = items,
+                Warehouses = warehouses,
+                Locations = locations,
+                InboundMovementCount = inboundMovementCount,
+                OutboundMovementCount = outboundMovementCount,
+                AdjustmentMovementCount = adjustmentMovementCount
+            };
+        }
 }
